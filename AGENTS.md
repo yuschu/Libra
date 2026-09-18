@@ -11,7 +11,7 @@ Libra 是一个城市交通运行数据**可视化分析 + 流量预测 + 拥堵
 - 后端：Python 3.10+ / FastAPI / Uvicorn / SQLite（开发），可平滑切换 MySQL
 - 数据处理：Pandas；数据预处理做成**可插拔组件**（见第五节）
 - 大屏前端：完整可视化大屏（Vue + GoView/datav-vue3 + DataV + ECharts 5），**面向非专业人员展示，视觉效果优先**
-- 管理后台：基于 **RuoYi-Vue-FastAPI** 集成（自带用户/权限/菜单），在其上做登录 + 预警规则配置
+- 预警设置：单机工具，**不做用户系统/登录/权限**；预警规则做成打开即改的设置页即可
 - 预测：**Prophet + XGBoost + LibCity 三者都集成**——Prophet 在线推理，XGBoost 作对比模型，LibCity 跑交通时序预测 baseline，结果做横向对比
 - 轻量与兼容：整体追求**轻量化**，并要能在**老电脑**上跑（见第三节）
 - Git 远程：https://github.com/yuschu/Libra.git （主分支 `main`）
@@ -77,7 +77,7 @@ Libra/
 ## 八、接口规范（统一、兼容、组件化）
 - 统一前缀 `/api/v1`，版本号进 URL，便于将来升级
 - 统一响应体：`{ "code": 0, "message": "ok", "data": ... }`，错误 code 非 0
-- 鉴权：管理后台接口走 **JWT**（登录发 token，后续接口带 `Authorization: Bearer <token>`）
+- 单机工具、不做用户系统，因此接口**不需要登录/鉴权**；分页仍按规范走
 - 分页：列表接口统一参数 `page`、`page_size`，返回 `{ list, total, page, page_size }`
 - 现有接口：
   - `GET /api/v1/stats/overview` —— 总流量、平均速度、路段数
@@ -144,8 +144,8 @@ git push
 **阶段 4 · 拥堵预警**
 - 黄/橙/红分级规则、预警展示与记录
 
-**阶段 5 · 管理后台**
-- 基于 RuoYi-Vue-FastAPI 集成：用户登录、权限、预警规则配置
+**阶段 5 · 预警规则设置页**
+- 单机工具直接打开配置预警规则，不做登录/用户系统
 
 **阶段 6 · 交付准备**
 - **opencode 只负责开发版**：产出完整技术细节的可运行开发版，不参与、不讨论产品版打包
