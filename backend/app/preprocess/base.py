@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Any, Optional
 import pandas as pd
+import math
 
 
 class BadRow:
@@ -12,9 +13,18 @@ class BadRow:
         self.errors = errors
 
     def to_dict(self) -> Dict[str, Any]:
+        # Replace NaN with None for JSON serialization
+        def clean_nan(obj):
+            if isinstance(obj, float) and math.isnan(obj):
+                return None
+            if isinstance(obj, dict):
+                return {k: clean_nan(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [clean_nan(v) for v in obj]
+            return obj
         return {
             "row_index": self.row_index,
-            "raw_data": self.raw_data,
+            "raw_data": clean_nan(self.raw_data),
             "errors": self.errors
         }
 
@@ -106,14 +116,14 @@ class PreprocessAdapter(ABC):
         if key_cols:
             df = df.dropna(subset=key_cols)
         
+        # density 裁剪到 [0, 1]（先裁剪，再范围校验）
+        if "density" in df.columns:
+            df["density"] = df["density"].clip(0, 1)
+        
         # 数值范围校验
         for col, (min_v, max_v) in self.NUMERIC_RANGES.items():
             if col in df.columns:
                 df = df[(df[col].isna()) | ((df[col] >= min_v) & (df[col] <= max_v))]
-        
-        # density 裁剪到 [0, 1]
-        if "density" in df.columns:
-            df["density"] = df["density"].clip(0, 1)
         
         # weather 标准化
         if "weather" in df.columns:
@@ -126,7 +136,7 @@ class PreprocessAdapter(ABC):
         """
         校验数据：返回 (有效数据, 坏行列表)
         """
-        bad_rows = []
+        bad_rows_dict = {}  # row_index -> BadRow
         valid_mask = pd.Series(True, index=df.index)
         
         # 必填列检查
@@ -134,13 +144,18 @@ class PreprocessAdapter(ABC):
             if col not in df.columns:
                 # 整列缺失视为全坏
                 for idx, row in df.iterrows():
-                    bad_rows.append(BadRow(idx, row.to_dict(), [f"缺少必填列: {col}"]))
-                return pd.DataFrame(), bad_rows
-            missing = df[col].isna()
-            if missing.any():
-                for idx in df[missing].index:
-                    bad_rows.append(BadRow(idx, df.loc[idx].to_dict(), [f"{col} 为空"]))
-                valid_mask &= ~missing
+                    if idx not in bad_rows_dict:
+                        bad_rows_dict[idx] = BadRow(idx, row.to_dict(), [])
+                    bad_rows_dict[idx].errors.append(f"缺少必填列: {col}")
+                valid_mask[:] = False
+            else:
+                missing = df[col].isna()
+                if missing.any():
+                    for idx in df[missing].index:
+                        if idx not in bad_rows_dict:
+                            bad_rows_dict[idx] = BadRow(idx, df.loc[idx].to_dict(), [])
+                        bad_rows_dict[idx].errors.append(f"{col} 为空")
+                    valid_mask &= ~missing
         
         # 数值列非空检查
         for col in ["flow", "avg_speed", "density"]:
@@ -148,9 +163,12 @@ class PreprocessAdapter(ABC):
                 missing = df[col].isna()
                 if missing.any():
                     for idx in df[missing].index:
-                        bad_rows.append(BadRow(idx, df.loc[idx].to_dict(), [f"{col} 非数值或为空"]))
+                        if idx not in bad_rows_dict:
+                            bad_rows_dict[idx] = BadRow(idx, df.loc[idx].to_dict(), [])
+                        bad_rows_dict[idx].errors.append(f"{col} 非数值或为空")
                     valid_mask &= ~missing
         
+        bad_rows = list(bad_rows_dict.values())
         valid_df = df[valid_mask].copy().reset_index(drop=True)
         return valid_df, bad_rows
 
