@@ -11,7 +11,7 @@ Libra 是一个城市交通运行数据**可视化分析 + 流量预测 + 拥堵
 - 后端：Python 3.10+ / FastAPI / Uvicorn / SQLite（开发），可平滑切换 MySQL
 - 数据处理：Pandas；数据预处理做成**可插拔组件**（见第五节）
 - 大屏前端：ECharts 5 + DataV（`@jiaminghi/data-v`），可视化编辑器 GoView / datav-vue3
-- 管理后台：vue-pure-admin
+- 管理后台：vue-pure-admin（结构参考 RuoYi-Vue-FastAPI / django-vue-admin：用户、角色、菜单、日志）
 - 预测：在线 Prophet；离线实验用 LibCity（Bigscity）、XGBoost / scikit-learn
 - 轻量与兼容：整体追求**轻量化**，并要能在**老电脑**上跑（见第三节）
 - Git 远程：https://github.com/yuschu/Libra.git （主分支 `main`）
@@ -89,14 +89,24 @@ git push
 - 不要把密钥、token 写进代码；不要为了省事跳过预处理直接塞脏数据
 - 不要用 Electron 整包打包；不要让前端依赖外网 CDN
 
-## 十一、30 周开发里程碑（参考，做一步推一步）
+## 十一、工程质量、日志与豆包监督（必须做）
+- 结构化日志：用 Python `logging` 写文件到 `logs/`，记录每次请求/任务的时间、动作、入参、结果、报错；不要只 `print` 到控制台
+- 配置走 `.env`（提供 `.env.example`），路径/端口/密钥不硬编码
+- 安全：配置 CORS 白名单；SQL 一律参数化查询防注入；接口入参做校验
+- 关键接口（stats / flows / predictions）写最小接口测试
+- **豆包监督机制**：
+  1. opencode 每完成一个动作必须 `git add . → commit → push`，commit message 写清改了哪些文件、做了什么；
+  2. 每次 push 后，由豆包（人工监督方）执行 review：`git log` 看本次改动、跑 `run.bat` 验证接口通、检查是否违反本说明书铁律；
+  3. review 不通过就打回，让 opencode 修正后重新提交，**未通过 review 不得进入下一步**。
+
+## 十二、30 周开发里程碑（参考，做一步推一步）
 - 第 1–4 周：骨架、数据库、预处理组件、基础可视化闭环
 - 第 5–10 周：大屏（路段切换、拥堵热力、事故/车非车类型图表）
 - 第 11–18 周：Prophet/XGBoost 预测接口 + 模型评估
 - 第 19–24 周：分级预警（黄/橙/红）+ JWT 管理后台
 - 第 25–30 周：联调、写论文实现/测试章节、部署与答辩
 
-## 十二、下一步待办（按顺序做，做一步推一步）
+## 十三、下一步待办（按顺序做，做一步推一步）
 1. 大屏加「路段下拉切换」和「时段×星期拥堵热力图」
 2. 建 `preprocess/` 多格式预处理组件
 3. 接入 Prophet：`POST /api/v1/predictions/flow`，离线训练、在线推理
