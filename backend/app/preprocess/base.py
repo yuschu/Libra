@@ -172,11 +172,11 @@ class PreprocessAdapter(ABC):
         if "weather" in df.columns:
             agg_funcs["weather"] = lambda x: x.mode().iloc[0] if not x.mode().empty else None
         
-        # road_id 保留第一个（同一分组内应相同）
-        if "road_id" in df.columns:
-            agg_funcs["road_id"] = "first"
+        # 按 road_id 和 dt 分组聚合
+        group_cols = ["road_id"] if "road_id" in df.columns else []
+        group_cols.append("dt")
         
-        result = df.groupby("dt", as_index=False).agg(agg_funcs)
+        result = df.groupby(group_cols, as_index=False).agg(agg_funcs)
         return result
 
     def process(self, file_bytes: bytes) -> Tuple[pd.DataFrame, List[BadRow]]:

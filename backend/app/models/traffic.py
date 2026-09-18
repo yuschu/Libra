@@ -1,5 +1,5 @@
 """SQLAlchemy 模型定义。"""
-from sqlalchemy import Column, Integer, String, Float, Text, Index
+from sqlalchemy import Column, Integer, String, Float, Text, Index, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -19,4 +19,5 @@ class TrafficFlow(Base):
 
     __table_args__ = (
         Index("idx_road_dt", "road_id", "dt"),
+        UniqueConstraint("road_id", "dt", name="uq_road_dt"),
     )
