@@ -1,0 +1,4 @@
+# 预测相关依赖（较大，按需再装）：pip install -r requirements-ml.txt
+prophet
+scikit-learn
+xgboost
