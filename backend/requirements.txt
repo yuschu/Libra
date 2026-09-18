@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pandas
+sqlalchemy
+pymysql
+python-dotenv
+prophet
+scikit-learn
+xgboost

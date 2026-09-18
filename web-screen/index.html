@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>交通流量演示</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>body{margin:0;font-family:sans-serif;background:#0b1e3a;color:#fff}
+  #chart{width:100%;height:80vh}</style>
+</head>
+<body>
+  <h3 style="text-align:center">近24小时路段流量</h3>
+  <div id="chart"></div>
+  <script>
+    const chart = echarts.init(document.getElementById('chart'));
+    fetch('http://127.0.0.1:8000/api/v1/traffic/flows')
+      .then(r => r.json())
+      .then(res => {
+        const d = res.data;
+        chart.setOption({
+          backgroundColor: 'transparent',
+          tooltip: {trigger: 'axis'},
+          xAxis: {type: 'category', data: d.labels},
+          yAxis: {type: 'value', name: '流量(辆)'},
+          series: [{type: 'line', smooth: true, data: d.values,
+            areaStyle: {opacity: 0.3}}]
+        });
+      })
+      .catch(e => chart.setTitle ? null : null);
+    window.addEventListener('resize', () => chart.resize());
+  </script>
+</body>
+</html>
