@@ -8,8 +8,8 @@ from backend.app.models.traffic import Base
 
 
 engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
+    settings.database_url_resolved,
+    connect_args={"check_same_thread": False} if "sqlite" in settings.database_url_resolved else {},
     echo=False,
 )
 
