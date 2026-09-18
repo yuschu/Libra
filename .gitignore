@@ -12,3 +12,7 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# AI 工具工作状态与日志
+.omo/
+logs/
