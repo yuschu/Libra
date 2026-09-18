@@ -10,9 +10,9 @@ Libra 是一个城市交通运行数据**可视化分析 + 流量预测 + 拥堵
 ## 二、技术栈（开源优先、组件化、高兼容）
 - 后端：Python 3.10+ / FastAPI / Uvicorn / SQLite（开发），可平滑切换 MySQL
 - 数据处理：Pandas；数据预处理做成**可插拔组件**（见第五节）
-- 大屏前端：ECharts 5 + DataV（`@jiaminghi/data-v`），可视化编辑器 GoView / datav-vue3
-- 管理后台：vue-pure-admin（结构参考 RuoYi-Vue-FastAPI / django-vue-admin：用户、角色、菜单、日志）
-- 预测：在线 Prophet；离线实验用 LibCity（Bigscity）、XGBoost / scikit-learn
+- 大屏前端：ECharts 5（主大屏就是轻量静态 HTML）+ DataV（`@jiaminghi/data-v`）；GoView / datav-vue3 仅作后期可选加分项，**不得替换主大屏、不得引入 npm 构建**
+- 管理后台：vue-pure-admin，**只做最小集**（登录 + 预警规则配置），结构参考 RuoYi-Vue-FastAPI；**不做完整 RBAC/角色/菜单权限体系**，避免喧宾夺主
+- 预测：在线 Prophet（**必须做、是核心**）；XGBoost / LibCity 为加分项，能跑 Prophet 即可毕业，LibCity 配置不通就跳过
 - 轻量与兼容：整体追求**轻量化**，并要能在**老电脑**上跑（见第三节）
 - Git 远程：https://github.com/yuschu/Libra.git （主分支 `main`）
 
