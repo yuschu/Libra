@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Libra 交通大屏 - 3D 可视化</title>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+  <script src="lib/echarts.min.js"></script>
+  <script src="lib/echarts-gl.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -362,9 +362,7 @@
       const option = {
         backgroundColor: "transparent",
         globe: {
-          baseTexture: "https://cdn.jsdelivr.net/gh/ecomfe/echarts-gl@latest/assets/earth/land_ocean_8192.jpg",
-          heightTexture: "https://cdn.jsdelivr.net/gh/ecomfe/echarts-gl@latest/assets/earth/bump_8192.jpg",
-          environment: "https://cdn.jsdelivr.net/gh/ecomfe/echarts-gl@latest/assets/earth/skybox_1024.jpg",
+          baseColor: "#0a1628",
           displacementScale: 0.05,
           shading: "realistic",
           realisticMaterial: {
@@ -374,8 +372,7 @@
           postEffect: { enable: true, bloom: { enable: true, intensity: 0.3 } },
           light: {
             main: { intensity: 1.2, shadow: true, alpha: 30, beta: 40 },
-            ambient: { intensity: 0.3 },
-            ambientCubemap: { texture: "https://cdn.jsdelivr.net/gh/ecomfe/echarts-gl@latest/assets/earth/skybox_1024.jpg", intensity: 0.5 }
+            ambient: { intensity: 0.3 }
           },
           viewControl: {
             autoRotate: true,
