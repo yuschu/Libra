@@ -403,7 +403,7 @@
         }]
       };
       
-      globeChart = echarts.init(document.getElementById("globe"), null, { renderer: "canvas" });
+      globeChart = echarts.init(document.getElementById("globe"), null, { renderer: "webgl" });
       globeChart.setOption(option);
       
       // Click handler for camera flight
