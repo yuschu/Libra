@@ -501,6 +501,9 @@
       threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
       threeRenderer.toneMappingExposure = 1.0;
       threeRenderer.setClearColor(0x000000, 1);
+      threeScene = new THREE.Scene();
+      threeCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      threeCamera.position.set(0, 0, 3);
       
       // ---- Post-processing (Bloom) ----
       const renderPass = new RenderPass(threeScene, threeCamera);
