@@ -503,16 +503,16 @@
       threeRenderer.setClearColor(0x000000, 1);
       
       // ---- Post-processing (Bloom) ----
-      const renderPass = new THREE.RenderPass(threeScene, threeCamera);
+      const renderPass = new RenderPass(threeScene, threeCamera);
       
-      bloomPass = new THREE.UnrealBloomPass(
+      bloomPass = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
         1.2,   // strength
         0.3,   // radius
         0.85   // threshold
       );
       
-      threeComposer = new THREE.EffectComposer(threeRenderer);
+      threeComposer = new EffectComposer(threeRenderer);
       threeComposer.addPass(renderPass);
       threeComposer.addPass(bloomPass);
       
