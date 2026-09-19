@@ -4,8 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Libra 交通大屏 - 3D 可视化</title>
+  <script src="lib/three.min.js"></script>
+  <script src="lib/controls/OrbitControls.js"></script>
+  <script src="lib/postprocessing/EffectComposer.js"></script>
+  <script src="lib/postprocessing/RenderPass.js"></script>
+  <script src="lib/postprocessing/UnrealBloomPass.js"></script>
+  <!-- echarts for heatmap only -->
   <script src="lib/echarts.min.js"></script>
-  <script src="lib/echarts-gl.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -170,7 +175,7 @@
     <div class="main-content">
       <!-- Globe Panel -->
       <div class="globe-panel">
-        <div id="globe"></div>
+        <canvas id="globe"></canvas>
       </div>
       
       <!-- Side Panel -->
@@ -291,6 +296,50 @@
       return "#666";
     }
     
+    function getCongestionThreeColor(avgSpeed) {
+      const hex = getCongestionColor(avgSpeed);
+      return new THREE.Color(hex);
+    }
+    
+    function formatTimeForGranularity(dtStr) {
+      // dtStr format: "2026-09-01 08:00"
+      const config = GRANULARITY_CONFIG[timeGranularity];
+      const date = new Date(dtStr.replace(" ", "T"));
+      switch (timeGranularity) {
+        case "ms":
+          return date.toISOString().slice(11, 23).replace("T", " ");
+        case "s":
+          return date.toISOString().slice(11, 19).replace("T", " ");
+        case "min":
+          return date.toISOString().slice(11, 16).replace("T", " ");
+        case "h":
+        default:
+          return date.toISOString().slice(11, 16).replace("T", " ");
+      }
+    }
+    
+    function getCongestionThreeColor(avgSpeed) {
+      const hex = getCongestionColor(avgSpeed);
+      return new THREE.Color(hex);
+    }
+    
+    function formatTimeForGranularity(dtStr) {
+      // dtStr format: "2026-09-01 08:00"
+      const config = GRANULARITY_CONFIG[timeGranularity];
+      const date = new Date(dtStr.replace(" ", "T"));
+      switch (timeGranularity) {
+        case "ms":
+          return date.toISOString().slice(11, 23).replace("T", " ");
+        case "s":
+          return date.toISOString().slice(11, 19).replace("T", " ");
+        case "min":
+          return date.toISOString().slice(11, 16).replace("T", " ");
+        case "h":
+        default:
+          return date.toISOString().slice(11, 16).replace("T", " ");
+      }
+    }
+    
     function getCongestionLevel(avgSpeed) {
       if (avgSpeed == null) return "无数据";
       if (avgSpeed < 20) return "严重";
@@ -396,7 +445,7 @@
         const option = {
           backgroundColor: "transparent",
           globe: {
-          baseColor: "#1a3a5c",
+          baseColor: "#ff2020",
           displacementScale: 0.05,
           shading: "realistic",
           realisticMaterial: {
@@ -413,7 +462,7 @@
           viewControl: {
             autoRotate: true,
             autoRotateAfterStill: 3,
-            distance: 6000000,
+            distance: 2000000,
             minDistance: 1500000,
             maxDistance: 25000000,
             panMouseButton: "left",
@@ -517,7 +566,7 @@
       const dt = getCurrentDt();
       
       // Update timeline display
-      document.getElementById("timelineTime").textContent = dt;
+      document.getElementById("timelineTime").textContent = formatTimeForGranularity(dt);
       document.getElementById("timelineSlider").value = frameIndex;
       
       // Fetch traffic data for this frame
@@ -546,8 +595,8 @@
           }
         }
         
-        // Update globe series colors
-        updateGlobeColors();
+        // Update or create route lines for this frame
+        updateRouteLines(dt);
         updateHeatmapForTime(dt);
         
       } catch (e) {
@@ -602,6 +651,83 @@
       return 70;
     }
     
+    // ---- Route Lines Update ----
+    function updateRouteLines(dt) {
+      const roadIds = selectedRoadId ? [selectedRoadId] : roadMeta.map(r => r.road_id);
+      
+      roadIds.forEach(rid => {
+        const cacheKey = `${rid}-${dt}`;
+        const traffic = trafficCache.get(cacheKey);
+        const road = roadMeta.find(r => r.road_id === rid);
+        if (!road) return;
+        
+        const avgSpeed = traffic?.avg_speed ?? null;
+        const color = getCongestionThreeColor(avgSpeed);
+        const congestionColor = getCongestionColor(avgSpeed);
+        
+        // Get or create route line
+        let lineObj = routeLineObjects[rid];
+        if (!lineObj) {
+          lineObj = createRouteLine(rid, road.bounds_geojson.coordinates);
+          routeLineObjects[rid] = lineObj;
+          threeScene.add(lineObj);
+        }
+        
+        // Update line color
+        if (lineObj.material) {
+          lineObj.material.color = color;
+          lineObj.material.emissive = color.clone().multiplyScalar(0.5);
+          lineObj.material.emissiveIntensity = 0.5;
+          lineObj.material.needsUpdate = true;
+        }
+        
+        // Store color for legend/heatmap sync
+        routeLines[rid] = { color: congestionColor, avgSpeed };
+      });
+      
+      // Remove lines for roads not in current view
+      Object.keys(routeLineObjects).forEach(rid => {
+        if (!roadIds.includes(rid)) {
+          const obj = routeLineObjects[rid];
+          threeScene.remove(obj);
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) obj.material.dispose();
+          delete routeLineObjects[rid];
+          delete routeLines[rid];
+        }
+      });
+    }
+    
+    function createRouteLine(roadId, coordinates) {
+      // Create a curved line along the route coordinates
+      const points = coordinates.map(([lon, lat]) => {
+        // Convert lat/lon to 3D position on sphere
+        const phi = (90 - lat) * Math.PI / 180;
+        const theta = (lon + 180) * Math.PI / 180;
+        const radius = 1.01; // Slightly above globe surface
+        return new THREE.Vector3(
+          radius * Math.sin(phi) * Math.cos(theta),
+          radius * Math.cos(phi),
+          radius * Math.sin(phi) * Math.sin(theta)
+        );
+      });
+      
+      // Create smooth curve
+      const curve = new THREE.CatmullRomCurve3(points);
+      const tubeGeometry = new THREE.TubeGeometry(curve, 64, 0.003, 8, false);
+      
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x00d4ff,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false
+      });
+      
+      const mesh = new THREE.Mesh(tubeGeometry, material);
+      mesh.userData = { roadId };
+      return mesh;
+    }
+    
     // ============ TIMELINE CONTROLS ============
     function playPause() {
       isPlaying = !isPlaying;
@@ -610,7 +736,7 @@
       
       if (isPlaying) {
         const config = GRANULARITY_CONFIG[timeGranularity];
-        const maxFrames = config.framesPerHour * 24 * 7; // 7 days
+        const maxFrames = config.framesPerHour * 24 * 7;
         playTimer = setInterval(() => {
           currentFrame = (currentFrame + 1) % maxFrames;
           updateFrame(currentFrame);
@@ -789,9 +915,11 @@
       });
       
       document.getElementById("btnResetView").addEventListener("click", () => {
-        if (globeChart) {
-          globeChart.dispatchAction({ type: "globeViewControl", action: "reset" });
-          autoRotate = true;
+        if (threeCamera) {
+          threeCamera.position.set(0, 0, 6000000);
+          orbitControls.target.set(0, 0, 0);
+          orbitControls.update();
+          autoRotateGlobe = true;
         }
       });
       
