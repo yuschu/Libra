@@ -768,7 +768,7 @@
       document.getElementById("timelineTime").textContent = getCurrentDt();
     }
     
-    function initTimeRange() {
+    async function initTimeRange() {
       // Set defaults to data range (covers full sample data)
       const start = new Date("2026-09-01T00:00:00");
       const end = new Date("2026-09-07T23:00:00");
@@ -833,5 +833,6 @@
       showToast("初始化失败: " + e.message, "error");
       hideLoading();
     });
+  </script>
 </body>
 </html>
