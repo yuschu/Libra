@@ -534,7 +534,7 @@
       orbitControls.update();
       
       const sphereGeo = new THREE.SphereGeometry(1, 48, 48);
-      const sphereMat = new THREE.MeshPhongMaterial({ color: 0x0a1628, emissive: 0x00d4ff, emissiveIntensity: 0.15 });
+      const sphereMat = new THREE.MeshBasicMaterial({ color: 0x0a1628 });
       globeMesh = new THREE.Mesh(sphereGeo, sphereMat);
       threeScene.add(globeMesh);
       const wireGeo = new THREE.SphereGeometry(1.001, 24, 24);
