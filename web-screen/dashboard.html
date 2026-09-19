@@ -697,9 +697,6 @@
         // Update line color
         if (lineObj.material) {
           lineObj.material.color = color;
-          lineObj.material.emissive = color.clone().multiplyScalar(0.5);
-          lineObj.material.emissiveIntensity = 0.5;
-          lineObj.material.needsUpdate = true;
         }
         
         // Store color for legend/heatmap sync
