@@ -11,7 +11,11 @@
         "three/addons/controls/OrbitControls.js": "./lib/controls/OrbitControls.js",
         "three/addons/postprocessing/EffectComposer.js": "./lib/postprocessing/EffectComposer.js",
         "three/addons/postprocessing/RenderPass.js": "./lib/postprocessing/RenderPass.js",
-        "three/addons/postprocessing/UnrealBloomPass.js": "./lib/postprocessing/UnrealBloomPass.js"
+        "three/addons/postprocessing/Pass.js": "./lib/postprocessing/Pass.js",
+        "three/addons/postprocessing/MaskPass.js": "./lib/postprocessing/MaskPass.js",
+        "three/addons/postprocessing/ShaderPass.js": "./lib/postprocessing/ShaderPass.js",
+        "three/addons/postprocessing/UnrealBloomPass.js": "./lib/postprocessing/UnrealBloomPass.js",
+        "three/addons/shaders/LuminosityHighPassShader.js": "./lib/shaders/LuminosityHighPassShader.js"
       }
     }
   </script>
@@ -308,7 +312,6 @@
       }
       return "#666";
     }
-    
     function getCongestionThreeColor(avgSpeed) {
       const hex = getCongestionColor(avgSpeed);
       return new THREE.Color(hex);
@@ -330,29 +333,6 @@
           return date.toISOString().slice(11, 16).replace("T", " ");
       }
     }
-    
-    function getCongestionThreeColor(avgSpeed) {
-      const hex = getCongestionColor(avgSpeed);
-      return new THREE.Color(hex);
-    }
-    
-    function formatTimeForGranularity(dtStr) {
-      // dtStr format: "2026-09-01 08:00"
-      const config = GRANULARITY_CONFIG[timeGranularity];
-      const date = new Date(dtStr.replace(" ", "T"));
-      switch (timeGranularity) {
-        case "ms":
-          return date.toISOString().slice(11, 23).replace("T", " ");
-        case "s":
-          return date.toISOString().slice(11, 19).replace("T", " ");
-        case "min":
-          return date.toISOString().slice(11, 16).replace("T", " ");
-        case "h":
-        default:
-          return date.toISOString().slice(11, 16).replace("T", " ");
-      }
-    }
-    
     function getCongestionLevel(avgSpeed) {
       if (avgSpeed == null) return "无数据";
       if (avgSpeed < 20) return "严重";
