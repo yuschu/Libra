@@ -34,6 +34,12 @@ class IngestService:
         skipped = 0
         
         for rec in records:
+            # 先查询是否已存在
+            existing = self.db.query(TrafficFlow).filter(
+                TrafficFlow.road_id == rec["road_id"],
+                TrafficFlow.dt == rec["dt"]
+            ).first()
+            
             # 构建 upsert 语句
             stmt = sqlite_insert(TrafficFlow).values(
                 dt=rec["dt"],
@@ -55,15 +61,11 @@ class IngestService:
                 }
             )
             
-            result = self.db.execute(stmt)
-            # SQLite 不返回 rowcount 可靠，用查询判断
-            existing = self.db.query(TrafficFlow).filter(
-                TrafficFlow.road_id == rec["road_id"],
-                TrafficFlow.dt == rec["dt"]
-            ).first()
+            self.db.execute(stmt)
+            
+            # 统计：先查再 upsert，准确区分新增/更新
             if existing:
-                # 简单判断：如果是新插入还是更新（这里统一算 inserted）
-                inserted += 1
+                updated += 1
             else:
                 inserted += 1
         

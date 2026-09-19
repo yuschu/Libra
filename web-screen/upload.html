@@ -145,6 +145,7 @@
     const modalContent = document.getElementById("modalContent");
     
     let uploadedFiles = [];
+    let dataCache = [];
     
     // Drop zone events
     dropZone.addEventListener("click", () => fileInput.click());
@@ -200,6 +201,7 @@
     }
     
     function showResults(data) {
+      dataCache = data;
       resultsBody.innerHTML = "";
       data.forEach((item, idx) => {
         const row = document.createElement("tr");
@@ -245,44 +247,6 @@
         </div>
       `).join("");
       modalOverlay.style.display = "flex";
-    }
-    
-    let dataCache = [];
-    
-    // Update showResults to cache data
-    function showResults(data) {
-      dataCache = data;
-      resultsBody.innerHTML = "";
-      data.forEach((item, idx) => {
-        const row = document.createElement("tr");
-        const hasError = item.error;
-        const badCount = item.bad_rows?.length || 0;
-        
-        let statusBadge = "";
-        if (hasError) {
-          statusBadge = '<span class="badge badge-error">失败</span>';
-        } else if (badCount > 0) {
-          statusBadge = '<span class="badge badge-warning">部分失败</span>';
-        } else {
-          statusBadge = '<span class="badge badge-success">成功</span>';
-        }
-        
-        row.innerHTML = `
-          <td>${escapeHtml(item.filename)}</td>
-          <td>${(item.inserted + item.updated + item.skipped).toLocaleString()}</td>
-          <td>${item.inserted.toLocaleString()}</td>
-          <td>${item.updated.toLocaleString()}</td>
-          <td>${item.skipped.toLocaleString()}</td>
-          <td>
-            ${badCount > 0 
-              ? `<button class="bad-rows-btn" onclick="showBadRows(${idx})">${badCount} 条</button>`
-              : "-"}
-          </td>
-          <td>${statusBadge}</td>
-        `;
-        resultsBody.appendChild(row);
-      });
-      resultsTable.style.display = "table";
     }
     
     // Sample data
