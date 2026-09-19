@@ -736,7 +736,7 @@
       
       // Create smooth curve
       const curve = new THREE.CatmullRomCurve3(points);
-      const tubeGeometry = new THREE.TubeGeometry(curve, 64, 0.005, 8, false);
+      const tubeGeometry = new THREE.TubeGeometry(curve, 64, 0.02, 8, false);
       
       // Use MeshBasicMaterial with emissive for glowing effect
       const material = new THREE.MeshBasicMaterial({
