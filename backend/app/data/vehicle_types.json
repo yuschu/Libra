@@ -1,0 +1,13 @@
+{
+  "vehicle_types": [
+    {"dt": "2026-09-01 00:00", "road_id": "R001", "car": 85, "bus": 5, "truck": 8, "bike": 2, "pedestrian": 0},
+    {"dt": "2026-09-01 01:00", "road_id": "R001", "car": 72, "bus": 3, "truck": 12, "bike": 1, "pedestrian": 0},
+    {"dt": "2026-09-01 02:00", "road_id": "R001", "car": 65, "bus": 2, "truck": 15, "bike": 0, "pedestrian": 0},
+    {"dt": "2026-09-01 00:00", "road_id": "R002", "car": 90, "bus": 4, "truck": 6, "bike": 0, "pedestrian": 0},
+    {"dt": "2026-09-01 01:00", "road_id": "R002", "car": 78, "bus": 3, "truck": 9, "bike": 0, "pedestrian": 0},
+    {"dt": "2026-09-01 02:00", "road_id": "R002", "car": 70, "bus": 2, "truck": 12, "bike": 0, "pedestrian": 0},
+    {"dt": "2026-09-01 00:00", "road_id": "R003", "car": 60, "bus": 6, "truck": 4, "bike": 5, "pedestrian": 3},
+    {"dt": "2026-09-01 01:00", "road_id": "R003", "car": 52, "bus": 4, "truck": 7, "bike": 2, "pedestrian": 1},
+    {"dt": "2026-09-01 02:00", "road_id": "R003", "car": 45, "bus": 3, "truck": 10, "bike": 1, "pedestrian": 0}
+  ]
+}

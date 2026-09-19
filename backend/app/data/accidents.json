@@ -1,0 +1,12 @@
+{
+  "accidents": [
+    {"dt": "2026-09-01 08:00", "road_id": "R001", "severity": 3, "lat": 39.9000, "lon": 116.4050, "description": "追尾事故，占用应急车道"},
+    {"dt": "2026-09-01 18:30", "road_id": "R002", "severity": 2, "lat": 39.3400, "lon": 117.3550, "description": "剐蹭事故，单向单道通行"},
+    {"dt": "2026-09-02 07:15", "road_id": "R001", "severity": 4, "lat": 39.9050, "lon": 116.4100, "description": "多车连环相撞，全幅封闭"},
+    {"dt": "2026-09-03 14:20", "road_id": "R003", "severity": 1, "lat": 39.6250, "lon": 118.1750, "description": "轻微刮擦，无人员伤亡"},
+    {"dt": "2026-09-04 22:10", "road_id": "R002", "severity": 2, "lat": 39.3350, "lon": 117.3500, "description": "单车侧翻，占用超车道"},
+    {"dt": "2026-09-05 06:45", "road_id": "R001", "severity": 3, "lat": 39.8950, "lon": 116.3950, "description": "货车爆胎，散落货物阻塞"},
+    {"dt": "2026-09-06 12:30", "road_id": "R003", "severity": 1, "lat": 39.6300, "lon": 118.1800, "description": "追尾无伤，快速处理完毕"},
+    {"dt": "2026-09-07 19:55", "road_id": "R002", "severity": 2, "lat": 39.3450, "lon": 117.3650, "description": "三车相撞，单道缓行"}
+  ]
+}
