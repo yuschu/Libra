@@ -533,6 +533,20 @@
       orbitControls.target.set(0, 0, 0);
       orbitControls.update();
       
+      const sphereGeo = new THREE.SphereGeometry(1, 48, 48);
+      const sphereMat = new THREE.MeshPhongMaterial({ color: 0x0a1628, emissive: 0x00d4ff, emissiveIntensity: 0.15 });
+      globeMesh = new THREE.Mesh(sphereGeo, sphereMat);
+      threeScene.add(globeMesh);
+      const wireGeo = new THREE.SphereGeometry(1.001, 24, 24);
+      const wireMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, wireframe: true, transparent: true, opacity: 0.15 });
+      wireframeMesh = new THREE.Mesh(wireGeo, wireMat);
+      threeScene.add(wireframeMesh);
+      threeScene.add(new THREE.AmbientLight(0x334466, 0.8));
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      dirLight.position.set(3, 2, 5);
+      threeScene.add(dirLight);
+      threeCamera.position.set(0, 0.8, 2.5);
+      
       // Hide loading
       hideLoading();
       console.log("[Globe] Loading hidden, loading initial frame...");
