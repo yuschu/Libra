@@ -278,6 +278,10 @@
     let isPlaying = false;
     let playTimer = null;
     let playbackSpeed = 1;
+    let threeRenderer = null, threeScene = null, threeCamera = null, threeComposer = null, bloomPass = null;
+    let orbitControls = null, globeMesh = null, wireframeMesh = null, glowMesh = null;
+    let routeLineObjects = [], routeLines = [];
+    let autoRotateGlobe = true, cameraFlying = false;
     let selectedRoadId = "";
     let timeRange = { start: null, end: null };
     let layers = { accidents: true, vehicleTypes: true, nonMotorized: false };
