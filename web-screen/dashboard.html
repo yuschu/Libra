@@ -4,30 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Libra 交通大屏 - 3D 可视化</title>
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "./lib/three.module.js",
-        "three/addons/controls/OrbitControls.js": "./lib/controls/OrbitControls.js",
-        "three/addons/postprocessing/EffectComposer.js": "./lib/postprocessing/EffectComposer.js",
-        "three/addons/postprocessing/RenderPass.js": "./lib/postprocessing/RenderPass.js",
-        "three/addons/postprocessing/Pass.js": "./lib/postprocessing/Pass.js",
-        "three/addons/postprocessing/MaskPass.js": "./lib/postprocessing/MaskPass.js",
-        "three/addons/postprocessing/ShaderPass.js": "./lib/postprocessing/ShaderPass.js",
-        "three/addons/postprocessing/UnrealBloomPass.js": "./lib/postprocessing/UnrealBloomPass.js",
-        "three/addons/shaders/LuminosityHighPassShader.js": "./lib/shaders/LuminosityHighPassShader.js"
-      }
-    }
-  </script>
-  <script type="module">
-    import * as THREE from "three";
-    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-    import * as echarts from "./lib/echarts.min.js";
-    // ECharts is global, we just ensure it loads
-  </script>
+  <script src="lib/three.umd.min.js"></script>
+  <script src="lib/OrbitControls.umd.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -251,12 +229,7 @@
     <div class="toast" id="toast"></div>
   </div>
 
-  <script type="module">
-    import * as THREE from "three";
-    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+  <script>
     // ============ CONFIGURATION ============
     const API_BASE = "/api/v1";
     const CONGESTION_THRESHOLDS = [
@@ -505,19 +478,6 @@
       threeCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
       threeCamera.position.set(0, 0, 3);
       
-      // ---- Post-processing (Bloom) ----
-      const renderPass = new RenderPass(threeScene, threeCamera);
-      
-      bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
-        1.2,   // strength
-        0.3,   // radius
-        0.85   // threshold
-      );
-      
-      threeComposer = new EffectComposer(threeRenderer);
-      threeComposer.addPass(renderPass);
-      threeComposer.addPass(bloomPass);
       
       // ---- OrbitControls ----
       orbitControls = new OrbitControls(threeCamera, canvas);
