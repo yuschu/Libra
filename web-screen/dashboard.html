@@ -551,7 +551,7 @@
       function animate() {
         requestAnimationFrame(animate);
         if (orbitControls) orbitControls.update();
-        if (threeComposer) threeComposer.render();
+        if (threeRenderer && threeScene && threeCamera) threeRenderer.render(threeScene, threeCamera);
       }
       animate();
       
