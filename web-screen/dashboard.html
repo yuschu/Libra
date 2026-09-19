@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -449,18 +449,18 @@
       console.error("[Globe] Stack trace:", err.stack);
       const container = document.getElementById("globe");
       if (container) {
-        container.innerHTML = \`
+        container.innerHTML = `
           <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;color:#ff6b6b;padding:20px;text-align:center;">
             <h3>🌐 地球仪初始化失败</h3>
-            <p style="margin:10px 0;max-width:400px;"><strong>错误:</strong> \${err.message}</p>
+            <p style="margin:10px 0;max-width:400px;"><strong>错误:</strong> ${err.message}</p>
             <p style="font-size:12px;color:#888;">请检查：浏览器是否支持 WebGL2、显卡驱动是否最新、是否禁用了硬件加速</p>
             <details style="margin:10px 0;text-align:left;max-width:500px;">
               <summary style="cursor:pointer;color:#ff6b6b;">查看详细错误堆栈</summary>
-              <pre style="margin-top:8px;padding:8px;background:#1a1a2e;color:#ff6b6b;font-size:11px;overflow:auto;max-height:200px;">\${err.stack || "No stack trace"}</pre>
+              <pre style="margin-top:8px;padding:8px;background:#1a1a2e;color:#ff6b6b;font-size:11px;overflow:auto;max-height:200px;">${err.stack || "No stack trace"}</pre>
             </details>
             <button onclick="location.reload()" style="margin-top:16px;padding:8px 16px;background:#1890ff;color:white;border:none;border-radius:4px;cursor:pointer;">重试</button>
           </div>
-        \`;
+        `;
       }
       throw err;
     }
