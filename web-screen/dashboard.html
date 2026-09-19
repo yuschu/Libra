@@ -153,6 +153,15 @@
       <div class="spacer"></div>
       
       <div class="control-group">
+        <label>时间粒度</label>
+        <select id="granularitySelect" title="选择时间轴粒度">
+          <option value="ms">毫秒</option>
+          <option value="s">秒</option>
+          <option value="min">分钟</option>
+          <option value="h" selected>小时</option>
+        </select>
+      </div>
+      <div class="control-group">
         <button class="btn btn-secondary" id="btnResetView">重置视角</button>
       </div>
     </header>
@@ -247,6 +256,14 @@
     let layers = { accidents: true, vehicleTypes: true, nonMotorized: false };
     let cameraFlying = false;
     let autoRotate = true;
+    // Time granularity
+    let timeGranularity = "h"; // "ms", "s", "min", "h"
+    const GRANULARITY_CONFIG = {
+      ms: { step: 1, labelFormat: (d) => d.toISOString().slice(11, 23), stepMs: 1, framesPerHour: 3600000 },
+      s:  { step: 1, labelFormat: (d) => d.toISOString().slice(11, 19), stepMs: 1000, framesPerHour: 3600 },
+      min: { step: 1, labelFormat: (d) => d.toISOString().slice(11, 16), stepMs: 60000, framesPerHour: 60 },
+      h:   { step: 1, labelFormat: (d) => d.toISOString().slice(11, 16), stepMs: 3600000, framesPerHour: 1 }
+    };
     
     // ============ UTILITIES ============
     function showToast(message, type = "info") {
@@ -383,22 +400,22 @@
           displacementScale: 0.05,
           shading: "realistic",
           realisticMaterial: {
-            roughness: 0.7,
-            metalness: 0.15
+            roughness: 0.6,
+            metalness: 0.2
           },
-          postEffect: { enable: true, bloom: { enable: true, intensity: 0.5 } },
+          postEffect: { enable: true, bloom: { enable: true, intensity: 0.6 } },
           light: {
-            main: { intensity: 1.5, shadow: true, alpha: 25, beta: 35, color: "#ffffff" },
-            ambient: { intensity: 0.4, color: "#446688" },
-            ambientCubemap: { intensity: 0.5 }
+            main: { intensity: 1.8, shadow: true, alpha: 20, beta: 30, color: "#ffffff" },
+            ambient: { intensity: 0.5, color: "#5588aa" },
+            ambientCubemap: { intensity: 0.6 }
           },
-          outline: { enable: true, color: "#4a90d9", width: 2 },
+          outline: { enable: true, color: "#00d4ff", width: 3 },
           viewControl: {
             autoRotate: true,
             autoRotateAfterStill: 3,
-            distance: 8000000,
-            minDistance: 2000000,
-            maxDistance: 30000000,
+            distance: 6000000,
+            minDistance: 1500000,
+            maxDistance: 25000000,
             panMouseButton: "left",
             rotateMouseButton: "right",
             zoomMouseButton: "middle"
@@ -411,13 +428,13 @@
           effect: {
             show: false
           },
-          lineStyle: { width: 5, opacity: 0.9 },
+          lineStyle: { width: 8, opacity: 1.0 },
           data: seriesData.map((s, i) => ({
             coords: s.coordinates,
             name: roadMeta[i].road_id,
             roadName: roadMeta[i].name,
-            lineStyle: { color: "#1890ff", width: 6 },
-            itemStyle: { color: "#1890ff" }
+            lineStyle: { color: "#00d4ff", width: 8 },
+            itemStyle: { color: "#00d4ff" }
           }))
         }]
       };
@@ -497,9 +514,7 @@
     // ============ FRAME UPDATE ============
     async function updateFrame(frameIndex) {
       currentFrame = frameIndex;
-      const baseDate = new Date("2026-09-01T00:00:00");
-      baseDate.setHours(baseDate.getHours() + frameIndex);
-      const dt = baseDate.toISOString().slice(0, 16).replace("T", " ");
+      const dt = getCurrentDt();
       
       // Update timeline display
       document.getElementById("timelineTime").textContent = dt;
@@ -571,7 +586,8 @@
     
     function getCurrentDt() {
       const baseDate = new Date("2026-09-01T00:00:00");
-      baseDate.setHours(baseDate.getHours() + currentFrame);
+      const config = GRANULARITY_CONFIG[timeGranularity];
+      baseDate.setMilliseconds(baseDate.getMilliseconds() + currentFrame * config.stepMs);
       return baseDate.toISOString().slice(0, 16).replace("T", " ");
     }
     
@@ -593,8 +609,10 @@
       btn.textContent = isPlaying ? "⏸" : "▶";
       
       if (isPlaying) {
+        const config = GRANULARITY_CONFIG[timeGranularity];
+        const maxFrames = config.framesPerHour * 24 * 7; // 7 days
         playTimer = setInterval(() => {
-          currentFrame = (currentFrame + 1) % 168;
+          currentFrame = (currentFrame + 1) % maxFrames;
           updateFrame(currentFrame);
         }, 500 / playbackSpeed);
       } else {
@@ -615,7 +633,10 @@
     
     function seekFrame(frame) {
       if (isPlaying) playPause();
-      updateFrame(frame);
+      const config = GRANULARITY_CONFIG[timeGranularity];
+      const maxFrames = config.framesPerHour * 24 * 7;
+      currentFrame = Math.max(0, Math.min(frame, maxFrames - 1));
+      updateFrame(currentFrame);
     }
     
     // ============ HEATMAP ============
@@ -737,7 +758,17 @@
     }
     
     // ============ TIME RANGE ============
-    async function initTimeRange() {
+    async     function updateTimelineSliderMax() {
+      const config = GRANULARITY_CONFIG[timeGranularity];
+      const maxFrames = config.framesPerHour * 24 * 7;
+      const slider = document.getElementById("timelineSlider");
+      slider.max = maxFrames - 1;
+      slider.value = Math.min(currentFrame, maxFrames - 1);
+      // Update time display
+      document.getElementById("timelineTime").textContent = getCurrentDt();
+    }
+    
+    function initTimeRange() {
       // Set defaults to data range (covers full sample data)
       const start = new Date("2026-09-01T00:00:00");
       const end = new Date("2026-09-07T23:00:00");
@@ -763,6 +794,24 @@
           autoRotate = true;
         }
       });
+      
+      // Initialize granularity selector
+      document.getElementById("granularitySelect").addEventListener("change", (e) => {
+        const oldGran = timeGranularity;
+        timeGranularity = e.target.value;
+        // Convert current frame to new granularity
+        const oldConfig = GRANULARITY_CONFIG[oldGran];
+        const newConfig = GRANULARITY_CONFIG[timeGranularity];
+        const progress = currentFrame / (oldConfig.framesPerHour * 24 * 7);
+        const maxFrames = newConfig.framesPerHour * 24 * 7;
+        currentFrame = Math.round(progress * maxFrames);
+        updateTimelineSliderMax();
+        updateFrame(currentFrame);
+        showToast("时间粒度已切换: " + timeGranularity);
+      });
+      
+      // Initialize slider max
+      updateTimelineSliderMax();
     }
     
     // ============ INITIALIZATION ============
@@ -784,6 +833,5 @@
       showToast("初始化失败: " + e.message, "error");
       hideLoading();
     });
-  </script>
 </body>
 </html>
