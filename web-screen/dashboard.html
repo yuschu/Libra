@@ -4,13 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Libra 交通大屏 - 3D 可视化</title>
-  <script src="lib/three.min.js"></script>
-  <script src="lib/controls/OrbitControls.js"></script>
-  <script src="lib/postprocessing/EffectComposer.js"></script>
-  <script src="lib/postprocessing/RenderPass.js"></script>
-  <script src="lib/postprocessing/UnrealBloomPass.js"></script>
-  <!-- echarts for heatmap only -->
-  <script src="lib/echarts.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./lib/three.module.js",
+        "three/addons/controls/OrbitControls.js": "./lib/controls/OrbitControls.js",
+        "three/addons/postprocessing/EffectComposer.js": "./lib/postprocessing/EffectComposer.js",
+        "three/addons/postprocessing/RenderPass.js": "./lib/postprocessing/RenderPass.js",
+        "three/addons/postprocessing/UnrealBloomPass.js": "./lib/postprocessing/UnrealBloomPass.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import * as echarts from "./lib/echarts.min.js";
+    // ECharts is global, we just ensure it loads
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -234,7 +247,7 @@
     <div class="toast" id="toast"></div>
   </div>
 
-  <script>
+  <script type="module">
     // ============ CONFIGURATION ============
     const API_BASE = "/api/v1";
     const CONGESTION_THRESHOLDS = [
@@ -415,10 +428,10 @@
     
     // ============ GLOBE INITIALIZATION ============
     async function initGlobe() {
-      console.log("[Globe] Starting initialization...");
+      console.log("[ThreeJS] Starting initialization...");
       
       // Check WebGL support
-      const canvas = document.createElement("canvas");
+      const canvas = document.getElementById("globe");
       const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
       if (!gl) {
         throw new Error("WebGL not supported in this browser");
@@ -426,11 +439,11 @@
       console.log("[Globe] WebGL supported:", gl.getParameter(gl.VERSION));
       console.log("[Globe] Renderer:", gl.getParameter(gl.RENDERER));
       
-      // Check echarts availability
-      if (typeof echarts === "undefined") {
-        throw new Error("ECharts not loaded");
+      // Check Three.js availability
+      if (typeof THREE === "undefined") {
+        throw new Error("Three.js not loaded");
       }
-      console.log("[Globe] ECharts version:", echarts.version);
+      console.log("[ThreeJS] Three.js version:", THREE.REVISION);
       
       try {
         // Prepare series data for ECharts GL
@@ -488,14 +501,46 @@
         }]
       };
       
-      console.log("[Globe] Initializing echarts with webgl renderer...");
-      globeChart = echarts.init(document.getElementById("globe"), null, { renderer: "webgl" });
-      console.log("[Globe] ECharts initialized, setting option...");
-      globeChart.setOption(option);
-      console.log("[Globe] Option set successfully");
+      console.log("[ThreeJS] Initializing Three.js renderer...");
+      threeRenderer = new THREE.WebGLRenderer({ 
+        canvas: canvas, 
+        antialias: true, 
+        alpha: true,
+        preserveDrawingBuffer: true
+      });
+      threeRenderer.setSize(window.innerWidth, window.innerHeight);
+      threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+      threeRenderer.toneMappingExposure = 1.0;
+      threeRenderer.setClearColor(0x000000, 1);
       
-      // Click handler for camera flight
-      globeChart.on("click", "series.lines3D", handleSegmentClick);
+      // ---- Post-processing (Bloom) ----
+      const renderPass = new THREE.RenderPass(threeScene, threeCamera);
+      
+      bloomPass = new THREE.UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.2,   // strength
+        0.3,   // radius
+        0.85   // threshold
+      );
+      
+      threeComposer = new THREE.EffectComposer(threeRenderer);
+      threeComposer.addPass(renderPass);
+      threeComposer.addPass(bloomPass);
+      
+      // ---- OrbitControls ----
+      orbitControls = new THREE.OrbitControls(threeCamera, canvas);
+      orbitControls.enableDamping = true;
+      orbitControls.dampingFactor = 0.05;
+      orbitControls.enablePan = true;
+      orbitControls.enableZoom = true;
+      orbitControls.enableRotate = true;
+      orbitControls.autoRotate = true;
+      orbitControls.autoRotateSpeed = 0.2;
+      orbitControls.minDistance = 1500000;
+      orbitControls.maxDistance = 30000000;
+      orbitControls.target.set(0, 0, 0);
+      orbitControls.update();
       
       // Hide loading
       hideLoading();
