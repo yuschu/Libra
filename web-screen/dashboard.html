@@ -300,16 +300,31 @@
               if (idx === 0) shape.moveTo(lon, lat);
               else shape.lineTo(lon, lat);
             });
-            // 只描省轮廓线
-            const pts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
-            const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
             const activeProvinces = ['北京市','天津市','河北省'];
             const isActive = activeProvinces.includes(name);
-            const mat = new THREE.LineBasicMaterial({
-              color: isActive ? 0x00e5ff : 0x3a5a8a,
-              transparent: true, opacity: isActive ? 1.0 : 0.6
-            });
-            const mesh = new THREE.LineLoop(lineGeo, mat);
+            let mesh;
+            if (isActive) {
+              // 有数据的省：亮青色填充
+              const shape = new THREE.Shape();
+              outer.forEach(([lon, lat], idx) => {
+                if (idx === 0) shape.moveTo(lon, lat);
+                else shape.lineTo(lon, lat);
+              });
+              const geo = new THREE.ShapeGeometry(shape, 2);
+              const pa = geo.attributes.position;
+              for (let i = 0; i < pa.count; i++) {
+                const v = projectToSphere(pa.getX(i), pa.getY(i), r);
+                pa.setXYZ(i, v.x, v.y, v.z);
+              }
+              const mat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+              mesh = new THREE.Mesh(geo, mat);
+            } else {
+              // 没数据的省：暗色轮廓线
+              const pts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
+              const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+              const mat = new THREE.LineBasicMaterial({ color: 0x3a5a8a, transparent: true, opacity: 0.5 });
+              mesh = new THREE.LineLoop(lineGeo, mat);
+            }
             mesh.userData = { province: name };
             threeScene.add(mesh);
             provinceMeshes.push(mesh);
