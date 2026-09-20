@@ -1291,8 +1291,10 @@
       });
       
       document.getElementById("btnResetView").addEventListener("click", () => {
-        if (threeCamera) {
-          // 先回退到3D
+        if (!threeCamera) return;
+        const in2D = document.getElementById('map2d').style.display !== 'none';
+        if (in2D) {
+          // 2D状态：回到进入2D前的3D位置
           document.getElementById('map2d').style.display = 'none';
           document.getElementById('globe').style.display = 'block';
           if (window._map2d) { window._map2d.destroy(); window._map2d = null; }
@@ -1305,7 +1307,25 @@
             threeCamera.updateProjectionMatrix();
             threeRenderer.setSize(cv.clientWidth, cv.clientHeight);
           }, 100);
-          flyToPosition(new THREE.Vector3(0, 0.3, 2), 1000);
+          // 回到中国有数据区域中心(北京附近)
+          const latRad = 39.9 * Math.PI / 180;
+          const lonRad = 116.4 * Math.PI / 180;
+          const r = 1.8;
+          flyToPosition(new THREE.Vector3(
+            -Math.cos(latRad)*Math.cos(lonRad)*r,
+            Math.sin(latRad)*r,
+            Math.cos(latRad)*Math.sin(lonRad)*r
+          ), 1000);
+        } else {
+          // 3D状态：滚到中国有数据区域中心
+          const latRad = 39.9 * Math.PI / 180;
+          const lonRad = 116.4 * Math.PI / 180;
+          const r = 1.8;
+          flyToPosition(new THREE.Vector3(
+            -Math.cos(latRad)*Math.cos(lonRad)*r,
+            Math.sin(latRad)*r,
+            Math.cos(latRad)*Math.sin(lonRad)*r
+          ), 1000);
         }
       });
       
