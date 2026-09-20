@@ -289,7 +289,7 @@
     let countryLines = [];
     // 有数据国家中心（经纬度），点重置时循环切换
     const dataCountries = [
-      { name: '中国', lat: 39.9, lon: 116.4 }
+      { name: '中国', lat: 35, lon: 105 }
     ];
     let dataCountryIdx = 0;
 
@@ -1315,7 +1315,7 @@
           // 回到中国有数据区域中心(北京附近)
           const latRad = 39.9 * Math.PI / 180;
           const lonRad = 116.4 * Math.PI / 180;
-          const r = 1.8;
+          const r = 2.5;
           flyToPosition(new THREE.Vector3(
             -Math.cos(latRad)*Math.cos(lonRad)*r,
             Math.sin(latRad)*r,
@@ -1327,7 +1327,7 @@
           dataCountryIdx = (dataCountryIdx + 1) % dataCountries.length;
           const latRad = c.lat * Math.PI / 180;
           const lonRad = c.lon * Math.PI / 180;
-          const r = 1.8;
+          const r = 2.5;
           flyToPosition(new THREE.Vector3(
             -Math.cos(latRad)*Math.cos(lonRad)*r,
             Math.sin(latRad)*r,
