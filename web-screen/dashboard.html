@@ -545,7 +545,8 @@
       orbitControls.update();
       
       // Click handler for route segments
-      // canvas.addEventListener('click', onGlobeClick); // TODO: 等路段线加完再绑
+      canvas.addEventListener('click', onGlobeClick);
+      canvas.addEventListener('mousemove', onGlobeHover);
       
       const sphereGeo = new THREE.SphereGeometry(1, 48, 48);
       const sphereMat = new THREE.MeshBasicMaterial({ color: 0x0a1628 });
@@ -648,6 +649,35 @@
     }
 
     // ---- Globe Click Handler ----
+    let hoveredMesh = null;
+    function onGlobeHover(event) {
+      if (cameraFlying) return;
+      const rect = canvas.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, threeCamera);
+      const intersects = raycaster.intersectObjects(provinceMeshes, true);
+      const newHover = intersects.length ? intersects[0].object : null;
+      if (newHover === hoveredMesh) return;
+      // 恢复旧的
+      if (hoveredMesh && hoveredMesh.material) {
+        const wasActive = ['北京市','天津市','河北省'].includes(hoveredMesh.userData.province);
+        hoveredMesh.material.opacity = wasActive ? 0.9 : 0.7;
+        hoveredMesh.material.color.set(wasActive ? 0x00d4ff : 0x1a2a4a);
+      }
+      hoveredMesh = newHover;
+      // 高亮新的
+      if (hoveredMesh && hoveredMesh.material) {
+        hoveredMesh.material.opacity = 1.0;
+        hoveredMesh.material.color.set(0x00e5ff);
+        document.body.style.cursor = 'pointer';
+      } else {
+        document.body.style.cursor = 'default';
+      }
+    }
     function onGlobeClick(event) {
       if (cameraFlying) return;
       
