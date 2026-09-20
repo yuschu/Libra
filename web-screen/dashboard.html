@@ -7,7 +7,7 @@
   <script src="lib/three.umd.min.js"></script>
   <script src="lib/OrbitControls.umd.js"></script>
   <link rel="stylesheet" href="lib/leaflet.css">
-  <script src="lib/leaflet.js"></script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=c3a0e4ed769cf63a0a771626c69cc9cd"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -856,12 +856,13 @@
           document.getElementById('globe').style.display = 'none';
           document.getElementById('map2d').style.display = 'block';
           if (!window._map2d) {
-            window._map2d = L.map('map2d', { zoomControl: false }).setView(center, 8);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-              attribution: 'CartoDB', subdomains: 'abcd'
-            }).addTo(window._map2d);
+            window._map2d = new AMap.Map('map2d', {
+              center: [center[1], center[0]],
+              zoom: 9,
+              mapStyle: 'amap://styles/dark'
+            });
           } else {
-            window._map2d.setView(center, 9);
+            window._map2d.setZoomAndCenter(9, [center[1], center[0]]);
           }
         }
       }
