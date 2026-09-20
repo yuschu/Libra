@@ -547,6 +547,17 @@
       // Click handler for route segments
       canvas.addEventListener('click', onGlobeClick);
       canvas.addEventListener('mousemove', onGlobeHover);
+      let autoRotateTimer = null;
+      canvas.addEventListener('pointerdown', () => {
+        if (orbitControls) orbitControls.autoRotate = false;
+        if (autoRotateTimer) clearTimeout(autoRotateTimer);
+      });
+      canvas.addEventListener('pointerup', () => {
+        if (autoRotateTimer) clearTimeout(autoRotateTimer);
+        autoRotateTimer = setTimeout(() => {
+          if (orbitControls) orbitControls.autoRotate = true;
+        }, 5000);
+      });
       
       const sphereGeo = new THREE.SphereGeometry(1, 48, 48);
       const sphereMat = new THREE.MeshBasicMaterial({ color: 0x0a1628 });
