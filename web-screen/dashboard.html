@@ -726,28 +726,14 @@
         const wasActive = ['北京市','天津市','河北省'].includes(hoveredMesh.userData.province);
         hoveredMesh.material.color.set(wasActive ? 0x3AA7B2 : 0x2a5a8a);
         hoveredMesh.material.opacity = wasActive ? 0.85 : 0.8;
-        // 缩回
-        const pos = hoveredMesh.geometry.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-          const len = Math.sqrt(x*x+y*y+z*z);
-          pos.setXYZ(i, x/len*1.0, y/len*1.0, z/len*1.0);
-        }
-        pos.needsUpdate = true;
+        hoveredMesh.scale.set(1, 1, 1);
       }
       hoveredMesh = hitObj;
       // 高亮新的
       if (hoveredMesh && hoveredMesh.material) {
         hoveredMesh.material.opacity = 1.0;
         hoveredMesh.material.color.set(0x00e5ff);
-        // 往外浮起
-        const pos = hoveredMesh.geometry.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-          const len = Math.sqrt(x*x+y*y+z*z);
-          pos.setXYZ(i, x/len*1.015, y/len*1.015, z/len*1.015);
-        }
-        pos.needsUpdate = true;
+        hoveredMesh.scale.set(1.02, 1.02, 1.02);
         document.body.style.cursor = 'pointer';
       } else {
         document.body.style.cursor = 'default';
