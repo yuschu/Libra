@@ -358,10 +358,9 @@
         const resp = await fetch('data/world.json');
         const geo = await resp.json();
         const r = 1.002;
-        const borderNames = ['Russia','Mongolia','Kazakhstan','Kyrgyzstan','Tajikistan','Afghanistan','Pakistan','India','Nepal','Bhutan','Myanmar','Lao','Viet','Korea'];
         geo.features.forEach(feat => {
           const name = feat.properties.name;
-          if (!borderNames.some(b => name.includes(b))) return;
+          if (name === 'China') return; // 中国已用省级数据
           const polys = feat.geometry.type === 'MultiPolygon' ? feat.geometry.coordinates : [feat.geometry.coordinates];
           polys.forEach(ring => {
             const outer = ring[0];
