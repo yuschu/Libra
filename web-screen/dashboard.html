@@ -351,6 +351,32 @@
         console.log('[Provinces] loaded', provinceMeshes.length, 'polygons for', geo.features.length, 'provinces');
       } catch(e) { console.error('loadProvinces failed:', e); }
     }
+
+    // 加载接壤国家轮廓线
+    async function loadNeighbors() {
+      try {
+        const resp = await fetch('data/world.json');
+        const geo = await resp.json();
+        const r = 1.002;
+        const borderNames = ['Russia','Mongolia','Kazakhstan','Kyrgyzstan','Tajikistan','Afghanistan','Pakistan','India','Nepal','Bhutan','Myanmar','Lao','Viet','Korea'];
+        geo.features.forEach(feat => {
+          const name = feat.properties.name;
+          if (!borderNames.some(b => name.includes(b))) return;
+          const polys = feat.geometry.type === 'MultiPolygon' ? feat.geometry.coordinates : [feat.geometry.coordinates];
+          polys.forEach(ring => {
+            const outer = ring[0];
+            if (!outer || outer.length < 3) return;
+            const pts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
+            const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+            const mat = new THREE.LineBasicMaterial({ color: 0x2a5a8a, transparent: true, opacity: 0.6 });
+            const mesh = new THREE.LineLoop(lineGeo, mat);
+            mesh.userData = { province: name };
+            threeScene.add(mesh);
+          });
+        });
+        console.log('[Neighbors] loaded border countries');
+      } catch(e) { console.error('loadNeighbors failed:', e); }
+    }
 // ============ UTILITIES ============
     function showToast(message, type = "info") {
       const toast = document.getElementById("toast");
@@ -1151,6 +1177,7 @@
       await fetchRoadMeta();
       await initGlobe();
       await loadProvinces();
+      await loadNeighbors();
       initLayerToggles();
       initTimeRange();
       
