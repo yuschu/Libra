@@ -807,7 +807,16 @@
             '<span class="breadcrumb-sep">/</span>' +
             '<span class="breadcrumb-item active">' + provinceName + '</span>';
           console.log('Clicked province:', provinceName, 'adcode:', mesh.userData.adcode);
-          flyToProvince(mesh.userData.adcode, provinceName);
+          // 算省中心经纬度
+          const pos = mesh.geometry.attributes.position;
+          let cx=0, cy=0, cz=0;
+          for (let i = 0; i < pos.count; i++) { cx+=pos.getX(i); cy+=pos.getY(i); cz+=pos.getZ(i); }
+          cx/=pos.count; cy/=pos.count; cz/=pos.count;
+          // 反投影到经纬度
+          const r2 = Math.sqrt(cx*cx+cy*cy+cz*cz);
+          const centerLat = Math.asin(cy/r2)*180/Math.PI;
+          const centerLon = Math.atan2(cz, -cx)*180/Math.PI;
+          flyToProvince(mesh.userData.adcode, provinceName, centerLon, centerLat);
         }
       }
     }
@@ -829,11 +838,17 @@
     }
 
     // 点击省：飞行+加载市级
-    function flyToProvince(adcode, name) {
+    function flyToProvince(adcode, name, centerLon, centerLat) {
       if (!adcode) { showToast('该省无下级数据'); return; }
-      // 从省中心经纬度算相机位置
-      // 简化：飞到球外1.5距离
-      const target = new THREE.Vector3(0, 0.8, 1.5);
+      // 根据省中心经纬度算相机位置
+      const latRad = (centerLat || 35) * Math.PI / 180;
+      const lonRad = (centerLon || 105) * Math.PI / 180;
+      const r = 1.5;
+      const target = new THREE.Vector3(
+        -Math.cos(latRad) * Math.cos(lonRad) * r,
+        Math.sin(latRad) * r,
+        Math.cos(latRad) * Math.sin(lonRad) * r
+      );
       flyToPosition(target, 1500);
       showToast('加载 ' + name + ' 市级数据...');
       // 下载市级 GeoJSON
