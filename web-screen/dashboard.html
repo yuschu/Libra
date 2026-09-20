@@ -824,11 +824,8 @@
         
         // Get or create route line
         let lineObj = routeLineObjects[rid];
-        if (!lineObj) {
-          lineObj = createRouteLine(rid, road.bounds_geojson.coordinates);
-          routeLineObjects[rid] = lineObj;
-          threeScene.add(lineObj);
-        }
+        // 路段线改用2D地图展示，3D球面上不画线
+        routeLineObjects[rid] = null;
         
         // Update line color
         if (lineObj.material) {
