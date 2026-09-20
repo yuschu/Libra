@@ -831,18 +831,41 @@
 
     // 切换到2D地图
     function switchTo2D(center, adcode, name) {
-      showToast('切换到2D地图: ' + name);
-      document.getElementById('globe').style.display = 'none';
-      document.getElementById('map2d').style.display = 'block';
-      if (!window._map2d) {
-        window._map2d = L.map('map2d', { zoomControl: false }).setView(center, 8);
-        // 深色科技风瓦片
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-          attribution: 'CartoDB', subdomains: 'abcd'
-        }).addTo(window._map2d);
-      } else {
-        window._map2d.setView(center, 9);
+      // 先做放大动画：相机拉近到球表面
+      const latRad = center[0] * Math.PI / 180;
+      const lonRad = center[1] * Math.PI / 180;
+      const r = 0.8;
+      const zoomTarget = new THREE.Vector3(
+        -Math.cos(latRad) * Math.cos(lonRad) * r,
+        Math.sin(latRad) * r,
+        Math.cos(latRad) * Math.sin(lonRad) * r
+      );
+      cameraFlying = true;
+      const startPos = threeCamera.position.clone();
+      const start = performance.now();
+      function step(now) {
+        const t = Math.min((now - start) / 1000, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        threeCamera.position.lerpVectors(startPos, zoomTarget, ease);
+        threeCamera.lookAt(0, 0, 0);
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          cameraFlying = false;
+          showToast('切换到2D地图: ' + name);
+          document.getElementById('globe').style.display = 'none';
+          document.getElementById('map2d').style.display = 'block';
+          if (!window._map2d) {
+            window._map2d = L.map('map2d', { zoomControl: false }).setView(center, 8);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+              attribution: 'CartoDB', subdomains: 'abcd'
+            }).addTo(window._map2d);
+          } else {
+            window._map2d.setView(center, 9);
+          }
+        }
       }
+      requestAnimationFrame(step);
     }
     // 相机动画飞到目标
     function flyToPosition(target, duration = 2000) {
