@@ -715,6 +715,7 @@
       raycaster.setFromCamera(mouse, threeCamera);
       const intersects = raycaster.intersectObjects(provinceMeshes, true);
       let hitObj = intersects.length ? intersects[0].object : null;
+      console.log('hover hit:', hitObj?.userData?.province, hitObj?.userData?.isHitMesh ? '(hitmesh)' : '(visible)');
       // 如果命中的是透明面，找同省的可见mesh
       if (hitObj && hitObj.userData.isHitMesh) {
         hitObj = provinceMeshes.find(m => m !== hitObj && !m.userData.isHitMesh && m.userData.province === hitObj.userData.province);
