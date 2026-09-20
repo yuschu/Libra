@@ -852,7 +852,7 @@
         routeLineObjects[rid] = null;
         
         // Update line color
-        if (lineObj.material) {
+        if (lineObj && lineObj.material) {
           lineObj.material.color = color;
         }
         
