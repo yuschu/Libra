@@ -806,9 +806,45 @@
             '<span class="breadcrumb-item" onclick="resetToCountry()">中国</span>' +
             '<span class="breadcrumb-sep">/</span>' +
             '<span class="breadcrumb-item active">' + provinceName + '</span>';
-          console.log('Clicked province:', provinceName);
+          console.log('Clicked province:', provinceName, 'adcode:', mesh.userData.adcode);
+          flyToProvince(mesh.userData.adcode, provinceName);
         }
       }
+    }
+
+    // 相机动画飞到目标
+    function flyToPosition(target, duration = 2000) {
+      cameraFlying = true;
+      const startPos = threeCamera.position.clone();
+      const start = performance.now();
+      function step(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        threeCamera.position.lerpVectors(startPos, target, ease);
+        threeCamera.lookAt(0, 0, 0);
+        if (t < 1) requestAnimationFrame(step);
+        else cameraFlying = false;
+      }
+      requestAnimationFrame(step);
+    }
+
+    // 点击省：飞行+加载市级
+    function flyToProvince(adcode, name) {
+      if (!adcode) { showToast('该省无下级数据'); return; }
+      // 从省中心经纬度算相机位置
+      // 简化：飞到球外1.5距离
+      const target = new THREE.Vector3(0, 0.8, 1.5);
+      flyToPosition(target, 1500);
+      showToast('加载 ' + name + ' 市级数据...');
+      // 下载市级 GeoJSON
+      fetch(`https://geo.datav.aliyun.com/areas_v3/bound/${adcode}_full.json`)
+        .then(r => r.json())
+        .then(cityGeo => {
+          // 隐藏省级色块，画市级
+          console.log('Loaded cities:', cityGeo.features.length);
+          showToast(name + ': ' + cityGeo.features.length + ' 个市');
+        })
+        .catch(e => showToast('下载失败: ' + e.message, 'error'));
     }
 
     // ============ FRAME UPDATE ============
