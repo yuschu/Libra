@@ -294,23 +294,20 @@
           polys.forEach(ring => {
             const outer = ring[0]; // 外环
             if (!outer || outer.length < 3) return;
-            // 用 Earcut 正确三角化（支持凹多边形和内洞）
+            // 用 ShapeGeometry 正确三角化（Earcut），平面坐标投影到球面
             const shape = new THREE.Shape();
             outer.forEach(([lon, lat], idx) => {
-              // 平面坐标（x=lon, y=lat）供 triangulateShape 用
-              const px = lon, py = lat;
-              if (idx === 0) shape.moveTo(px, py);
-              else shape.lineTo(px, py);
+              if (idx === 0) shape.moveTo(lon, lat);
+              else shape.lineTo(lon, lat);
             });
-            const faces = THREE.ShapeUtils.triangulateShape(shape.getPoints(2), []);
-            const positions = [];
-            const sphereVerts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
-            faces.forEach(face => {
-              face.forEach(vi => {
-                const v = sphereVerts[vi];
-                positions.push(v.x, v.y, v.z);
-              });
-            });
+            const planeGeo = new THREE.ShapeGeometry(shape, 2);
+            // 把平面顶点(lon,lat)投影到球面
+            const posAttr = planeGeo.attributes.position;
+            for (let i = 0; i < posAttr.count; i++) {
+              const v = projectToSphere(posAttr.getX(i), posAttr.getY(i), r);
+              posAttr.setXYZ(i, v.x, v.y, v.z);
+            }
+            posAttr.needsUpdate = true;
             const geo3 = new THREE.BufferGeometry();
             geo3.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geo3.computeVertexNormals();
