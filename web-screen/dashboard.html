@@ -788,7 +788,7 @@
       }
     }
     function onGlobeClick(event) {
-      if (cameraFlying) return;
+      if (cameraFlying) { console.log('flying, skip click'); return; }
       
       const cv = document.getElementById('globe');
       const rect = cv.getBoundingClientRect();
