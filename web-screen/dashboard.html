@@ -520,13 +520,15 @@
         alpha: true,
         preserveDrawingBuffer: true
       });
-      threeRenderer.setSize(window.innerWidth, window.innerHeight);
+      const globePanel = canvas.parentElement;
+      threeRenderer.setSize(globePanel.clientWidth, globePanel.clientHeight);
+      threeRenderer.setPixelRatio(window.devicePixelRatio);
       threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
       threeRenderer.toneMappingExposure = 1.0;
       threeRenderer.setClearColor(0x000000, 1);
       threeScene = new THREE.Scene();
-      threeCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      threeCamera = new THREE.PerspectiveCamera(45, globePanel.clientWidth / globePanel.clientHeight, 0.1, 1000);
       threeCamera.position.set(0, 0, 3);
       
       
@@ -573,6 +575,14 @@
       threeScene.add(dirLight);
       threeCamera.position.set(0.86, 1.6, 1.7); // 对准北京
       
+      // ---- Resize handling ----
+      window.addEventListener('resize', () => {
+        const w = canvas.parentElement.clientWidth;
+        const h = canvas.parentElement.clientHeight;
+        threeCamera.aspect = w / h;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(w, h);
+      });
       // ---- Render loop ----
       function animate() {
         requestAnimationFrame(animate);
