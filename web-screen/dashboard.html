@@ -308,9 +308,7 @@
               posAttr.setXYZ(i, v.x, v.y, v.z);
             }
             posAttr.needsUpdate = true;
-            const geo3 = new THREE.BufferGeometry();
-            geo3.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geo3.computeVertexNormals();
+            planeGeo.computeVertexNormals();
             const activeProvinces = ['北京市','天津市','河北省'];
             const isActive = activeProvinces.includes(name);
             const mat = new THREE.MeshBasicMaterial({
@@ -318,7 +316,7 @@
               transparent: true, opacity: isActive ? 0.9 : 0.7,
               side: THREE.DoubleSide
             });
-            const mesh = new THREE.Mesh(geo3, mat);
+            const mesh = new THREE.Mesh(planeGeo, mat);
             mesh.userData = { province: name };
             threeScene.add(mesh);
             provinceMeshes.push(mesh);
