@@ -315,28 +315,6 @@
             provinceMeshes.push(mesh);
           });
         });
-<<<<<<< HEAD
-        // 全国整体暗蓝底，盖住省界缝隙和空洞
-        const chinaShape = new THREE.Shape();
-        let started = false;
-        geo.features.forEach(feat => {
-          feat.geometry.coordinates[0].forEach(ring => {
-            ring[0].forEach(([lon, lat], idx) => {
-              if (!started) { chinaShape.moveTo(lon, lat); started = true; }
-              else chinaShape.lineTo(lon, lat);
-            });
-          });
-        });
-        const chinaGeo = new THREE.ShapeGeometry(chinaShape, 2);
-        const cp = chinaGeo.attributes.position;
-        for (let i = 0; i < cp.count; i++) {
-          const v = projectToSphere(cp.getX(i), cp.getY(i), 1.001);
-          cp.setXYZ(i, v.x, v.y, v.z);
-        }
-        const chinaMat = new THREE.MeshBasicMaterial({ color: 0x1a2a4a, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
-        threeScene.add(new THREE.Mesh(chinaGeo, chinaMat));
-=======
->>>>>>> parent of 68d5dd6 (feat: 加全国暗蓝底图盖住省界空洞)
         console.log('[Provinces] loaded', provinceMeshes.length, 'polygons for', geo.features.length, 'provinces');
       } catch(e) { console.error('loadProvinces failed:', e); }
     }
