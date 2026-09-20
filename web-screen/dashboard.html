@@ -809,6 +809,7 @@
             '<span class="breadcrumb-item" onclick="resetToCountry()">中国</span>' +
             '<span class="breadcrumb-sep">/</span>' +
             '<span class="breadcrumb-item active">' + provinceName + '</span>';
+          window._currentAdcode = null;
           console.log('Clicked province:', provinceName, 'adcode:', mesh.userData.adcode);
           // 算省中心经纬度
           const pos = mesh.geometry.attributes.position;
@@ -867,6 +868,17 @@
         }
       }
       requestAnimationFrame(step);
+    }
+    // 回退到3D地球仪
+    function resetToCountry() {
+      document.getElementById('map2d').style.display = 'none';
+      document.getElementById('globe').style.display = 'block';
+      if (window._map2d) { window._map2d.destroy(); window._map2d = null; }
+      document.getElementById('breadcrumb').innerHTML =
+        '<span class="breadcrumb-item active">中国</span>';
+      window._currentAdcode = null;
+      // 相机飞回球正面
+      flyToPosition(new THREE.Vector3(0, 0.3, 2), 1000);
     }
     // 相机动画飞到目标
     function flyToPosition(target, duration = 2000) {
