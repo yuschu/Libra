@@ -220,6 +220,11 @@
               <span class="layer-label">非机动车/行人</span>
               <div class="layer-toggle" data-layer="nonMotorized"></div>
             </div>
+            <div class="layer-item">
+              <div class="layer-color" style="background:#2a5a8a"></div>
+              <span class="layer-label">无数据国家</span>
+              <div class="layer-toggle active" data-layer="countries"></div>
+            </div>
           </div>
         </section>
       </aside>
@@ -270,6 +275,7 @@
     // Province data
     let provinceData = [];
     let provinceMeshes = [];
+    let countryLines = [];
 
     // 经纬度投影到球面（半径 r）
     function projectToSphere(lon, lat, r) {
@@ -371,6 +377,7 @@
             const mesh = new THREE.LineLoop(lineGeo, mat);
             mesh.userData = { province: name };
             threeScene.add(mesh);
+            countryLines.push(mesh);
           });
         });
         console.log('[Neighbors] loaded border countries');
@@ -1178,6 +1185,12 @@
       await loadProvinces();
       await loadNeighbors();
       initLayerToggles();
+      document.querySelectorAll('.layer-toggle[data-layer="countries"]').forEach(el => {
+        el.addEventListener('click', () => {
+          const on = el.classList.toggle('active');
+          countryLines.forEach(m => m.visible = on);
+        });
+      });
       initTimeRange();
       
       // Timeline events
