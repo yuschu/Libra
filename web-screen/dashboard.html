@@ -819,11 +819,31 @@
           const r2 = Math.sqrt(cx*cx+cy*cy+cz*cz);
           const centerLat = Math.asin(cy/r2)*180/Math.PI;
           const centerLon = Math.atan2(cz, -cx)*180/Math.PI;
-          flyToProvince(mesh.userData.adcode, provinceName, centerLon, centerLat);
+          if (window._currentAdcode === mesh.userData.adcode) {
+            // 第二次点：放大+切2D
+            switchTo2D(window._currentCenter, window._currentAdcode, window._currentName);
+          } else {
+            flyToProvince(mesh.userData.adcode, provinceName, centerLon, centerLat);
+          }
         }
       }
     }
 
+    // 切换到2D地图
+    function switchTo2D(center, adcode, name) {
+      showToast('切换到2D地图: ' + name);
+      document.getElementById('globe').style.display = 'none';
+      document.getElementById('map2d').style.display = 'block';
+      if (!window._map2d) {
+        window._map2d = L.map('map2d', { zoomControl: false }).setView(center, 8);
+        // 深色科技风瓦片
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+          attribution: 'CartoDB', subdomains: 'abcd'
+        }).addTo(window._map2d);
+      } else {
+        window._map2d.setView(center, 9);
+      }
+    }
     // 相机动画飞到目标
     function flyToPosition(target, duration = 2000) {
       cameraFlying = true;
@@ -853,16 +873,10 @@
         Math.cos(latRad) * Math.sin(lonRad) * r
       );
       flyToPosition(target, 1500);
-      showToast('加载 ' + name + ' 市级数据...');
-      // 显示2D地图
-      document.getElementById('map2d').style.display = 'block';
-      document.getElementById('globe').style.display = 'none';
-      if (!window._map2d) {
-        window._map2d = L.map('map2d').setView([centerLat || 35, centerLon || 105], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' }).addTo(window._map2d);
-      } else {
-        window._map2d.setView([centerLat, centerLon], 7);
-      }
+      showToast('已飞到 ' + name + '，再次点击进入2D地图');
+      window._currentCenter = [centerLat, centerLon];
+      window._currentAdcode = adcode;
+      window._currentName = name;
       // 下载市级 GeoJSON
       fetch(`https://geo.datav.aliyun.com/areas_v3/bound/${adcode}_full.json`)
         .then(r => r.json())
