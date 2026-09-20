@@ -246,7 +246,7 @@
     let roadMeta = [];
     let accidentsData = [];
     let vehicleTypesData = [];
-    let trafficCache = new Map(); // key: `${road_id}-${dt}` -> {flow, avg_speed, density}
+    let trafficCache = new Map(); // key: \-\ -> {flow, avg_speed, density}
     let currentFrame = 0;
     let isPlaying = false;
     let playTimer = null;
@@ -255,20 +255,67 @@
     let orbitControls = null, globeMesh = null, wireframeMesh = null, glowMesh = null;
     let routeLineObjects = [], routeLines = [];
     let autoRotateGlobe = true, cameraFlying = false;
-    let selectedRoadId = "";
+    let selectedRoadId = \;
     let timeRange = { start: null, end: null };
     let layers = { accidents: true, vehicleTypes: true, nonMotorized: false };
     let autoRotate = true;
     // Time granularity
-    let timeGranularity = "h"; // "ms", "s", "min", "h"
-    const GRANULARITY_CONFIG = {
+    let timeGranularity = \h\; // \ms\, \s\, \min\, \h    const GRANULARITY_CONFIG = {
       ms: { step: 1, labelFormat: (d) => d.toISOString().slice(11, 23), stepMs: 1, framesPerHour: 3600000 },
       s:  { step: 1, labelFormat: (d) => d.toISOString().slice(11, 19), stepMs: 1000, framesPerHour: 3600 },
       min: { step: 1, labelFormat: (d) => d.toISOString().slice(11, 16), stepMs: 60000, framesPerHour: 60 },
       h:   { step: 1, labelFormat: (d) => d.toISOString().slice(11, 16), stepMs: 3600000, framesPerHour: 1 }
     };
-    
-    // ============ UTILITIES ============
+    // Province data
+    let provinceData = [];
+    let provinceMeshes = [];
+
+    // 经纬度投影到球面（半径 r）
+    function projectToSphere(lon, lat, r) {
+      const latRad = lat * Math.PI / 180;
+      const lonRad = lon * Math.PI / 180;
+      return new THREE.Vector3(
+        -Math.cos(latRad) * Math.cos(lonRad) * r,
+        Math.sin(latRad) * r,
+        Math.cos(latRad) * Math.sin(lonRad) * r
+      );
+    }
+
+    // 加载省级 GeoJSON 并画到球面
+    async function loadProvinces() {
+      try {
+        const resp = await fetch('data/provinces.json');
+        const geo = await resp.json();
+        const r = 1.002;
+        geo.features.forEach(feat => {
+          const name = feat.properties.name;
+          const polys = feat.geometry.type === 'MultiPolygon' ? feat.geometry.coordinates : [feat.geometry.coordinates];
+          polys.forEach(ring => {
+            const outer = ring[0]; // 外环
+            if (!outer || outer.length < 3) return;
+            const verts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
+            // 扇形三角化：0,1,2 / 0,2,3 / ...
+            const positions = [];
+            for (let i = 1; i < verts.length - 1; i++) {
+              [verts[0], verts[i], verts[i+1]].forEach(v => positions.push(v.x, v.y, v.z));
+            }
+            const geo3 = new THREE.BufferGeometry();
+            geo3.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geo3.computeVertexNormals();
+            const mat = new THREE.MeshBasicMaterial({
+              color: 0x1a2a4a, transparent: true, opacity: 0.85,
+              side: THREE.DoubleSide
+            });
+            const mesh = new THREE.Mesh(geo3, mat);
+            mesh.userData = { province: name };
+            threeScene.add(mesh);
+            provinceMeshes.push(mesh);
+          });
+        });
+        console.log('[Provinces] loaded', provinceMeshes.length, 'polygons for', geo.features.length, 'provinces');
+      } catch(e) { console.error('loadProvinces failed:', e); }
+    }
+// ============ UTILITIES ============
     function showToast(message, type = "info") {
       const toast = document.getElementById("toast");
       toast.textContent = message;
@@ -581,6 +628,48 @@
       }, 1600);
     }
     
+    // ---- Window Resize ----
+    function onWindowResize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      threeCamera.aspect = width / height;
+      threeCamera.updateProjectionMatrix();
+      
+      threeRenderer.setSize(width, height);
+      threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      
+      threeComposer.setSize(width, height);
+      bloomPass.setSize(width, height);
+    }
+
+    // ---- Globe Click Handler ----
+    function onGlobeClick(event) {
+      if (cameraFlying) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, threeCamera);
+      
+      const intersects = raycaster.intersectObjects(provinceMeshes, true);
+      if (intersects.length > 0) {
+        const mesh = intersects[0].object;
+        const provinceName = mesh.userData?.province;
+        const adcode = mesh.userData?.adcode;
+        
+        if (provinceName) {
+          showToast('Clicked: ' + provinceName);
+          // TODO: Fly to province and load city data
+          console.log('Clicked province:', provinceName, 'adcode:', adcode);
+        }
+      }
+    }
+
     // ============ FRAME UPDATE ============
     async function updateFrame(frameIndex) {
       currentFrame = frameIndex;
@@ -968,6 +1057,7 @@
     async function init() {
       await fetchRoadMeta();
       await initGlobe();
+      await loadProvinces();
       initLayerToggles();
       initTimeRange();
       
