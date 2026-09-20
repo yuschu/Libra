@@ -316,13 +316,13 @@
                 const v = projectToSphere(pa.getX(i), pa.getY(i), r);
                 pa.setXYZ(i, v.x, v.y, v.z);
               }
-              const mat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+              const mat = new THREE.MeshBasicMaterial({ color: 0x3AA7B2, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
               mesh = new THREE.Mesh(geo, mat);
             } else {
               // 没数据的省：暗色轮廓线
               const pts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
               const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
-              const mat = new THREE.LineBasicMaterial({ color: 0x3a5a8a, transparent: true, opacity: 0.5 });
+              const mat = new THREE.LineBasicMaterial({ color: 0x14274A, transparent: true, opacity: 0.8 });
               mesh = new THREE.LineLoop(lineGeo, mat);
             }
             mesh.userData = { province: name };
