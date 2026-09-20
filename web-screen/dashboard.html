@@ -300,28 +300,22 @@
               if (idx === 0) shape.moveTo(lon, lat);
               else shape.lineTo(lon, lat);
             });
-            const planeGeo = new THREE.ShapeGeometry(shape, 2);
-            // 把平面顶点(lon,lat)投影到球面
-            const posAttr = planeGeo.attributes.position;
-            for (let i = 0; i < posAttr.count; i++) {
-              const v = projectToSphere(posAttr.getX(i), posAttr.getY(i), r);
-              posAttr.setXYZ(i, v.x, v.y, v.z);
-            }
-            posAttr.needsUpdate = true;
-            planeGeo.computeVertexNormals();
+            // 只描省轮廓线
+            const pts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
+            const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
             const activeProvinces = ['北京市','天津市','河北省'];
             const isActive = activeProvinces.includes(name);
-            const mat = new THREE.MeshBasicMaterial({
-              color: isActive ? 0x00d4ff : 0x1a2a4a,
-              transparent: true, opacity: isActive ? 0.9 : 0.7,
-              side: THREE.DoubleSide
+            const mat = new THREE.LineBasicMaterial({
+              color: isActive ? 0x00e5ff : 0x3a5a8a,
+              transparent: true, opacity: isActive ? 1.0 : 0.6
             });
-            const mesh = new THREE.Mesh(planeGeo, mat);
+            const mesh = new THREE.LineLoop(lineGeo, mat);
             mesh.userData = { province: name };
             threeScene.add(mesh);
             provinceMeshes.push(mesh);
           });
         });
+<<<<<<< HEAD
         // 全国整体暗蓝底，盖住省界缝隙和空洞
         const chinaShape = new THREE.Shape();
         let started = false;
@@ -341,6 +335,8 @@
         }
         const chinaMat = new THREE.MeshBasicMaterial({ color: 0x1a2a4a, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
         threeScene.add(new THREE.Mesh(chinaGeo, chinaMat));
+=======
+>>>>>>> parent of 68d5dd6 (feat: 加全国暗蓝底图盖住省界空洞)
         console.log('[Provinces] loaded', provinceMeshes.length, 'polygons for', geo.features.length, 'provinces');
       } catch(e) { console.error('loadProvinces failed:', e); }
     }
