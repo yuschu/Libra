@@ -820,9 +820,9 @@
           const r2 = Math.sqrt(cx*cx+cy*cy+cz*cz);
           const centerLat = Math.asin(cy/r2)*180/Math.PI;
           const centerLon = Math.atan2(cz, -cx)*180/Math.PI;
-          if (window._currentAdcode === mesh.userData.adcode) {
-            // 第二次点：放大+切2D
-            switchTo2D(window._currentCenter, window._currentAdcode, window._currentName);
+          if (window._currentAdcode) {
+            // 已经飞过一次了：再点就放大切2D
+            switchTo2D([centerLat, centerLon], mesh.userData.adcode, provinceName);
           } else {
             flyToProvince(mesh.userData.adcode, provinceName, centerLon, centerLat);
           }
