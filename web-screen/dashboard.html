@@ -934,7 +934,14 @@
         threeCamera.position.lerpVectors(startPos, target, ease);
         threeCamera.lookAt(0, 0, 0);
         if (t < 1) requestAnimationFrame(step);
-        else cameraFlying = false;
+        else {
+          cameraFlying = false;
+          // 飞行结束后手动触发一次hover
+          const cv = document.getElementById('globe');
+          const rect = cv.getBoundingClientRect();
+          const ev = new MouseEvent('mousemove', { clientX: rect.left + rect.width/2, clientY: rect.top + rect.height/2 });
+          onGlobeHover(ev);
+        }
       }
       requestAnimationFrame(step);
     }
