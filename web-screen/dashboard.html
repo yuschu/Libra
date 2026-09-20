@@ -287,6 +287,11 @@
     let provinceData = [];
     let provinceMeshes = [];
     let countryLines = [];
+    // 有数据国家中心（经纬度），点重置时循环切换
+    const dataCountries = [
+      { name: '中国', lat: 39.9, lon: 116.4 }
+    ];
+    let dataCountryIdx = 0;
 
     // 经纬度投影到球面（半径 r）
     function projectToSphere(lon, lat, r) {
@@ -1317,15 +1322,18 @@
             Math.cos(latRad)*Math.sin(lonRad)*r
           ), 1000);
         } else {
-          // 3D状态：滚到中国有数据区域中心
-          const latRad = 39.9 * Math.PI / 180;
-          const lonRad = 116.4 * Math.PI / 180;
+          // 3D状态：循环切有数据国家中心
+          const c = dataCountries[dataCountryIdx];
+          dataCountryIdx = (dataCountryIdx + 1) % dataCountries.length;
+          const latRad = c.lat * Math.PI / 180;
+          const lonRad = c.lon * Math.PI / 180;
           const r = 1.8;
           flyToPosition(new THREE.Vector3(
             -Math.cos(latRad)*Math.cos(lonRad)*r,
             Math.sin(latRad)*r,
             Math.cos(latRad)*Math.sin(lonRad)*r
           ), 1000);
+          showToast('对准: ' + c.name);
         }
       });
       
