@@ -873,6 +873,13 @@
               zoom: 8,
               mapStyle: 'amap://styles/dark'
             });
+            // 缩放到国家级别以下自动切回3D
+            window._map2d.on('zoomend', () => {
+              const z = window._map2d.getZoom();
+              if (z <= 5) {
+                resetToCountry();
+              }
+            });
           } else {
             window._map2d.setZoomAndCenter(8, [center[1], center[0]]);
           }
