@@ -877,7 +877,8 @@
             window._map2d.on('zoomend', () => {
               const z = window._map2d.getZoom();
               if (z <= 5) {
-                resetToCountry();
+                const c = window._map2d.getCenter();
+                resetToCountry(c.lat, c.lng);
               }
             });
           } else {
@@ -896,14 +897,15 @@
       requestAnimationFrame(step);
     }
     // 回退到3D地球仪
-    function resetToCountry() {
+    function resetToCountry(centerLat, centerLon) {
+      let lat = centerLat !== undefined ? centerLat : 39.9;
+      let lon = centerLon !== undefined ? centerLon : 116.4;
       document.getElementById('map2d').style.display = 'none';
       document.getElementById('globe').style.display = 'block';
       if (window._map2d) { window._map2d.destroy(); window._map2d = null; }
       document.getElementById('breadcrumb').innerHTML =
         '<span class="breadcrumb-item active">中国</span>';
       window._currentAdcode = null;
-      // 重新resize renderer
       setTimeout(() => {
         const cv = document.getElementById('globe');
         const w = cv.clientWidth, h = cv.clientHeight;
@@ -911,8 +913,14 @@
         threeCamera.updateProjectionMatrix();
         threeRenderer.setSize(w, h);
       }, 100);
-      // 相机飞回球正面
-      flyToPosition(new THREE.Vector3(0, 0.3, 2), 1000);
+      const latRad = lat * Math.PI / 180;
+      const lonRad = lon * Math.PI / 180;
+      const r = 1.8;
+      flyToPosition(new THREE.Vector3(
+        -Math.cos(latRad)*Math.cos(lonRad)*r,
+        Math.sin(latRad)*r,
+        Math.cos(latRad)*Math.sin(lonRad)*r
+      ), 1000);
     }
     // 相机动画飞到目标
     function flyToPosition(target, duration = 2000) {
