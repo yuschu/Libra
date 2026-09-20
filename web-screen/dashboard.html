@@ -338,7 +338,7 @@
               const v = projectToSphere(hpa.getX(i), hpa.getY(i), r);
               hpa.setXYZ(i, v.x, v.y, v.z);
             }
-            const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+            const hitMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
             const hitMesh = new THREE.Mesh(hitGeo, hitMat);
             hitMesh.userData = { province: name, isHitMesh: true };
             threeScene.add(hitMesh);
