@@ -326,8 +326,26 @@
               mesh = new THREE.LineLoop(lineGeo, mat);
             }
             mesh.userData = { province: name };
+            // 加透明命中面用于raycast（线太细点不准）
+            const hitShape = new THREE.Shape();
+            outer.forEach(([lon, lat], idx) => {
+              if (idx === 0) hitShape.moveTo(lon, lat);
+              else hitShape.lineTo(lon, lat);
+            });
+            const hitGeo = new THREE.ShapeGeometry(hitShape, 2);
+            const hpa = hitGeo.attributes.position;
+            for (let i = 0; i < hpa.count; i++) {
+              const v = projectToSphere(hpa.getX(i), hpa.getY(i), r);
+              hpa.setXYZ(i, v.x, v.y, v.z);
+            }
+            const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+            const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+            hitMesh.userData = { province: name, isHitMesh: true };
+            threeScene.add(hitMesh);
+            provinceMeshes.push(hitMesh);
+            // 原始线/填充也加入raycast列表
             threeScene.add(mesh);
-            provinceMeshes.push(mesh);
+            mesh.userData = { province: name };
           });
         });
         console.log('[Provinces] loaded', provinceMeshes.length, 'polygons for', geo.features.length, 'provinces');
@@ -576,7 +594,7 @@
       });
       
       const sphereGeo = new THREE.SphereGeometry(1, 48, 48);
-      const sphereMat = new THREE.MeshBasicMaterial({ color: 0x020814 });
+      const sphereMat = new THREE.MeshBasicMaterial({ color: 0x05132A });
       globeMesh = new THREE.Mesh(sphereGeo, sphereMat);
       threeScene.add(globeMesh);
       const wireGeo = new THREE.SphereGeometry(1.001, 24, 24);
