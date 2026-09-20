@@ -294,12 +294,23 @@
           polys.forEach(ring => {
             const outer = ring[0]; // 外环
             if (!outer || outer.length < 3) return;
-            const verts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
-            // 扇形三角化：0,1,2 / 0,2,3 / ...
+            // 用 Earcut 正确三角化（支持凹多边形和内洞）
+            const shape = new THREE.Shape();
+            outer.forEach(([lon, lat], idx) => {
+              // 平面坐标（x=lon, y=lat）供 triangulateShape 用
+              const px = lon, py = lat;
+              if (idx === 0) shape.moveTo(px, py);
+              else shape.lineTo(px, py);
+            });
+            const faces = THREE.ShapeUtils.triangulateShape(shape.getPoints(2), []);
             const positions = [];
-            for (let i = 1; i < verts.length - 1; i++) {
-              [verts[0], verts[i], verts[i+1]].forEach(v => positions.push(v.x, v.y, v.z));
-            }
+            const sphereVerts = outer.map(([lon, lat]) => projectToSphere(lon, lat, r));
+            faces.forEach(face => {
+              face.forEach(vi => {
+                const v = sphereVerts[vi];
+                positions.push(v.x, v.y, v.z);
+              });
+            });
             const geo3 = new THREE.BufferGeometry();
             geo3.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geo3.computeVertexNormals();
