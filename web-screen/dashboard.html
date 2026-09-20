@@ -753,6 +753,7 @@
     let hoveredMesh = null;
     function onGlobeHover(event) {
       if (cameraFlying) return;
+      if (cameraFlying) return;
       const cv = document.getElementById('globe');
       const rect = cv.getBoundingClientRect();
       const mouse = new THREE.Vector2(
