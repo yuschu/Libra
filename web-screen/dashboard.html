@@ -810,7 +810,7 @@
             '<span class="breadcrumb-sep">/</span>' +
             '<span class="breadcrumb-item active">' + provinceName + '</span>';
 
-          console.log('Clicked province:', provinceName, 'adcode:', mesh.userData.adcode);
+          console.log('Clicked province:', provinceName, 'adcode:', mesh.userData.adcode, 'currentAdcode:', window._currentAdcode);
           // 算省中心经纬度
           const pos = mesh.geometry.attributes.position;
           let cx=0, cy=0, cz=0;
@@ -883,6 +883,14 @@
       document.getElementById('breadcrumb').innerHTML =
         '<span class="breadcrumb-item active">中国</span>';
       window._currentAdcode = null;
+      // 重新resize renderer
+      setTimeout(() => {
+        const cv = document.getElementById('globe');
+        const w = cv.clientWidth, h = cv.clientHeight;
+        threeCamera.aspect = w / h;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(w, h);
+      }, 100);
       // 相机飞回球正面
       flyToPosition(new THREE.Vector3(0, 0.3, 2), 1000);
     }
