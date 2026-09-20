@@ -300,6 +300,17 @@
               if (idx === 0) shape.moveTo(lon, lat);
               else shape.lineTo(lon, lat);
             });
+            // 处理内洞
+            for (let h = 1; h < ring.length; h++) {
+              const hole = ring[h];
+              if (!hole || hole.length < 3) continue;
+              const holePath = new THREE.Path();
+              hole.forEach(([lon, lat], idx) => {
+                if (idx === 0) holePath.moveTo(lon, lat);
+                else holePath.lineTo(lon, lat);
+              });
+              shape.holes.push(holePath);
+            }
             const planeGeo = new THREE.ShapeGeometry(shape, 2);
             // 把平面顶点(lon,lat)投影到球面
             const posAttr = planeGeo.attributes.position;
