@@ -794,14 +794,19 @@
       
       const intersects = raycaster.intersectObjects(provinceMeshes, true);
       if (intersects.length > 0) {
-        const mesh = intersects[0].object;
+        let mesh = intersects[0].object;
+        // 命中命中面时找可见mesh
+        if (mesh.userData?.isHitMesh && mesh.userData.visibleMesh) {
+          mesh = mesh.userData.visibleMesh;
+        }
         const provinceName = mesh.userData?.province;
-        const adcode = mesh.userData?.adcode;
-        
         if (provinceName) {
-          showToast('Clicked: ' + provinceName);
-          // TODO: Fly to province and load city data
-          console.log('Clicked province:', provinceName, 'adcode:', adcode);
+          // 更新面包屑
+          document.getElementById('breadcrumb').innerHTML =
+            '<span class="breadcrumb-item" onclick="resetToCountry()">中国</span>' +
+            '<span class="breadcrumb-sep">/</span>' +
+            '<span class="breadcrumb-item active">' + provinceName + '</span>';
+          console.log('Clicked province:', provinceName);
         }
       }
     }
