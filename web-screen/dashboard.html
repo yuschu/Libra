@@ -857,6 +857,12 @@
           document.getElementById('globe').style.display = 'none';
           document.getElementById('map2d').style.display = 'block';
           if (!window._map2d) {
+            // 等高德SDK加载完
+            if (typeof AMap === 'undefined') {
+              showToast('地图加载中...', 'info');
+              setTimeout(() => switchTo2D(center, adcode, name), 500);
+              return;
+            }
             window._map2d = new AMap.Map('map2d', {
               center: [center[1], center[0]],
               zoom: 9,
