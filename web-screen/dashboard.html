@@ -339,7 +339,7 @@
               const mat = new THREE.LineBasicMaterial({ color: 0x2a5a8a, transparent: true, opacity: 0.9 });
               mesh = new THREE.LineLoop(lineGeo, mat);
             }
-            mesh.userData = { province: name };
+            mesh.userData = { province: name, adcode: feat.properties.adcode };
             // 加透明命中面用于raycast（线太细点不准）
             const hitShape = new THREE.Shape();
             outer.forEach(([lon, lat], idx) => {
@@ -359,7 +359,7 @@
             provinceMeshes.push(hitMesh);
             // 原始线/填充也加入raycast列表
             threeScene.add(mesh);
-            mesh.userData = { province: name };
+            mesh.userData = { province: name, adcode: feat.properties.adcode };
           });
         });
         console.log('[Provinces] loaded', provinceMeshes.length, 'polygons for', geo.features.length, 'provinces');
@@ -383,7 +383,7 @@
             const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
             const mat = new THREE.LineBasicMaterial({ color: 0x2a5a8a, transparent: true, opacity: 0.6 });
             const mesh = new THREE.LineLoop(lineGeo, mat);
-            mesh.userData = { province: name };
+            mesh.userData = { province: name, adcode: feat.properties.adcode };
             threeScene.add(mesh);
             countryLines.push(mesh);
           });
