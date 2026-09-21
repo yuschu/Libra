@@ -908,26 +908,24 @@
           let count = 0;
           const allPts = [];
           roads.forEach(road => {
-            const coords = road.bounds_geojson?.coordinates;
-            if (!coords || coords.length < 2) return;
-            const polyline = new AMap.Polyline({
-              path: coords,
-              strokeColor: '#3AA7B2',
-              strokeWeight: 6,
-              strokeOpacity: 0.8,
-              lineJoin: 'round',
-              lineCap: 'round',
-              zIndex: 100
+            const pt = [road.center_lon, road.center_lat];
+            const marker = new AMap.CircleMarker({
+              center: pt,
+              radius: 12,
+              fillColor: '#3AA7B2',
+              fillOpacity: 0.9,
+              strokeColor: '#fff',
+              strokeWeight: 2,
+              zIndex: 110
             });
-            polyline.setMap(window._map2d);
-            allPts.push(...coords);
+            marker.setMap(window._map2d);
+            allPts.push(pt);
             count++;
           });
-          // 自动适配所有路段视野
           if (allPts.length > 0) {
             window._map2d.setFitView();
           }
-          showToast('已加载 ' + count + ' 条路段', 'success');
+          showToast('已加载 ' + count + ' 个路段节点', 'success');
         })
         .catch(e => { showToast('路段加载失败: ' + e.message, 'error'); });
     }
