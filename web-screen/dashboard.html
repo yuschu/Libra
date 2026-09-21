@@ -204,7 +204,13 @@
             <input type="range" class="timeline-slider" id="timelineSlider" min="0" max="167" value="0" step="1" />
           </div>
         </section>
-        
+
+        <!-- 24小时拥堵指数 -->
+        <section class="panel-section">
+          <h3>📈 当日24小时拥堵指数</h3>
+          <div id="chart24h" style="width:100%;height:180px;"></div>
+        </section>
+
         <!-- Heatmap Section -->
         <section class="panel-section">
           <h3>📊 时段 × 星期 拥堵热力图</h3>
@@ -1491,6 +1497,31 @@
       showToast("初始化失败: " + e.message, "error");
       hideLoading();
     });
+    // 24小时拥堵指数折线
+    let chart24h;
+    async function render24hChart() {
+      if (!chart24h) chart24h = echarts.init(document.getElementById('chart24h'));
+      try {
+        const r = await fetch(`${API_BASE}/traffic/avg-speed-by-hour`);
+        const j = await r.json();
+        const hours = j.data.labels;
+        const today = j.data.today;
+        const avg = j.data.avg;
+        chart24h.setOption({
+          grid: { left: 40, right: 10, top: 20, bottom: 35 },
+          xAxis: { type: 'category', data: hours, axisLabel: { fontSize: 10, color: '#888' } },
+          yAxis: { type: 'value', min: 0, max: 3, axisLabel: { fontSize: 10, color: '#888' } },
+          series: [
+            { name: '当前值', data: today, type: 'line', smooth: true, lineStyle: { width: 2, color: '#f5222d' }, areaStyle: { color: 'rgba(245,34,45,0.15)' }, symbol: 'none' },
+            { name: '月均值', data: avg, type: 'line', smooth: true, lineStyle: { width: 1.5, color: '#8c8cff' }, symbol: 'none' }
+          ],
+          tooltip: { trigger: 'axis' },
+          legend: { bottom: 0, textStyle: { fontSize: 10, color: '#aaa' } }
+        });
+      } catch(e) { console.error(e); }
+    }
+    render24hChart();
+    setInterval(render24hChart, 60000);
   </script>
 </body>
 </html>
