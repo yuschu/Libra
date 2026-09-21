@@ -900,57 +900,30 @@
     // 加载路段线数据并在2D地图上绘制
     function loadRoadSegments() {
       if (!window._map2d) return;
-      fetch('/api/v1/traffic/flows')
+      fetch('/api/v1/meta/roads')
         .then(r => r.json())
-        .then(data => {
-          if (data.code !== 0 || !data.data || !data.data.records) {
-            showToast('路段数据格式错误', 'error');
-            return;
-          }
-          const records = data.data.records;
-          if (!records || records.length === 0) {
-            showToast('暂无路段数据', 'info');
-            return;
-          }
-          
-          const CONGESTION_COLORS = {
-            '畅通': '#52c41a',
-            '缓行': '#faad14',
-            '拥堵': '#fa8c16',
-            '严重': '#f5222d'
-          };
-          
+        .then(res => {
+          if (res.code !== 0 || !res.data) { showToast('路段数据格式错误', 'error'); return; }
+          const roads = res.data;
           let count = 0;
-          records.forEach(record => {
-            try {
-              // 假设数据格式包含coordinates和congestion_level
-              const coords = record.coordinates || record.geometry?.coordinates;
-              const level = record.congestion_level || record.level || '畅通';
-              const color = window.CONGESTION_COLORS[record.congestion_level] || 
-                            {畅通:'#52c41a',缓行:'#faad14',拥堵:'#fa8c16',严重:'#f5222d'}[record.congestion_level] || '#52c41a';
-              
-              if (coords && coords.length >= 2) {
-                const path = coords.map(([lng, lat]) => [lng, lat]);
-                const polyline = new AMap.Polyline({
-                  path: path,
-                  strokeColor: color,
-                  strokeWeight: 6,
-                  strokeOpacity: 0.8,
-                  strokeStyle: 'solid',
-                  lineJoin: 'round',
-                  lineCap: 'round',
-                  zIndex: 100
-                });
-                polyline.setMap(window._map2d);
-              }
+          roads.forEach(road => {
+            const coords = road.bounds_geojson?.coordinates;
+            if (!coords || coords.length < 2) return;
+            const polyline = new AMap.Polyline({
+              path: coords,
+              strokeColor: '#3AA7B2',
+              strokeWeight: 6,
+              strokeOpacity: 0.8,
+              lineJoin: 'round',
+              lineCap: 'round',
+              zIndex: 100
             });
-            
-            showToast('已加载 ' + records.length + ' 条路段', 'success');
-          })
-          .catch(e => {
-            console.error('loadRoadSegments error:', e);
-            showToast('路段加载失败: ' + e.message, 'error');
+            polyline.setMap(window._map2d);
+            count++;
           });
+          showToast('已加载 ' + count + ' 条路段', 'success');
+        })
+        .catch(e => { showToast('路段加载失败: ' + e.message, 'error'); });
     }
     
     // 重置到国家视图
