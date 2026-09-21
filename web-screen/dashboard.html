@@ -1130,6 +1130,13 @@
         
         // Store color for legend/heatmap sync
         routeLines[rid] = { color: congestionColor, avgSpeed };
+        // 更新2D地图光点颜色
+        if (window._roadMarkers && window._roadMarkers.length > 0) {
+          const idx = roadMeta.findIndex(r => r.road_id === rid);
+          if (idx >= 0 && window._roadMarkers[idx]) {
+            window._roadMarkers[idx].setOptions({ fillColor: congestionColor });
+          }
+        }
       });
       
       // Remove lines for roads not in current view
