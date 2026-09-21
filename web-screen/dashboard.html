@@ -919,6 +919,15 @@
           strokeWeight: 2,
           zIndex: 110
         });
+        // 点击放大到该路段
+        marker.on('click', () => {
+          window._map2d.setZoomAndCenter(14, [road.center_lon, road.center_lat]);
+          // 光点变大突出
+          window._roadMarkers.forEach((m, i) => {
+            m.setOptions({ radius: i === window._roadMarkers.indexOf(marker) ? 20 : 8 });
+          });
+          showToast('路段: ' + road.name);
+        });
         marker.setMap(window._map2d);
         window._roadMarkers.push(marker);
         count++;
