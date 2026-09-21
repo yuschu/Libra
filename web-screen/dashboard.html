@@ -216,6 +216,18 @@
           <div id="chart24h" style="width:100%;height:180px;"></div>
         </section>
 
+        <!-- 近7天柱状图 -->
+        <section class="panel-section">
+          <h3>📊 近7天拥堵指数</h3>
+          <div id="chart7d" style="width:100%;height:180px;"></div>
+        </section>
+
+        <!-- 拥堵排行 -->
+        <section class="panel-section">
+          <h3>🏆 实时拥堵排行</h3>
+          <div id="rankList" style="font-size:12px;color:#ccc;max-height:200px;overflow-y:auto;"></div>
+        </section>
+
         <!-- Heatmap Section -->
         <section class="panel-section">
           <h3>📊 时段 × 星期 拥堵热力图</h3>
@@ -1541,6 +1553,44 @@
     }
     render24hChart();
     setInterval(render24hChart, 60000);
+
+    // 近7天柱状图
+    let chart7d;
+    async function render7d() {
+      if (!chart7d) chart7d = echarts.init(document.getElementById('chart7d'));
+      try {
+        const r = await fetch(`${API_BASE}/traffic/week7`);
+        const j = await r.json();
+        chart7d.setOption({
+          grid: { left: 35, right: 10, top: 15, bottom: 35 },
+          xAxis: { type: 'category', data: j.data.labels, axisLabel: { fontSize: 9, color: '#888', interval: 0 } },
+          yAxis: { type: 'value', min: 0, max: 2.5, axisLabel: { fontSize: 9, color: '#888' } },
+          series: [
+            { name: '当日值', data: j.data.today, type: 'bar', itemStyle: { color: '#fa8c16' }, barWidth: '30%' },
+            { name: '月均值', data: j.data.avg, type: 'bar', itemStyle: { color: '#8c8cff' }, barWidth: '30%' }
+          ],
+          tooltip: { trigger: 'axis' },
+          legend: { bottom: 0, textStyle: { fontSize: 9, color: '#aaa' } }
+        });
+      } catch(e) { console.error(e); }
+    }
+    render7d();
+
+    // 拥堵排行
+    async function renderRank() {
+      try {
+        const r = await fetch(`${API_BASE}/traffic/rank`);
+        const j = await r.json();
+        const colors = ['#f5222d','#f5222d','#fa8c16','#fa8c16','#faad14','#faad14','#faad14','#52c41a','#52c41a','#52c41a'];
+        document.getElementById('rankList').innerHTML = j.data.map((r,i) =>
+          `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #222;">
+             <span><b style="color:${colors[i]}">${i+1}</b> ${r.road_id}</span>
+             <span style="color:${colors[i]}">${r.index.toFixed(2)}</span>
+             <span style="color:#888">${r.speed}km/h</span>
+           </div>`).join('');
+      } catch(e) { console.error(e); }
+    }
+    renderRank();
   </script>
 </body>
 </html>

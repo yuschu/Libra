@@ -33,6 +33,42 @@ async def avg_speed_by_hour():
     })
 
 
+@router.get("/week7")
+async def week7():
+    """近7天拥堵指数（所有路段白天8-20点平均）"""
+    import numpy as np, os
+    p = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "gz_tensor.npy")
+    t = np.load(os.path.normpath(p))  # 214 x 61 x 144
+    # 最近7天（55-61天），白天时段 8:00-20:00 = time_id 49-120
+    days = list(range(54, 61))
+    today = []
+    avg = []
+    labels = []
+    weekdays = ["周一","周二","周三","周四","周五","周六","周日"]
+    for i, d in enumerate(days):
+        day_data = t[:, d, 48:120].mean()  # 8:00-20:00
+        today.append(round(40.0/float(day_data), 2) if day_data > 5 else 2.5)
+        avg.append(round(40.0/float(t[:, :, 48:120].mean()), 2))
+        labels.append(weekdays[i] + " " + f"09-{14+i:02d}")
+    return ok({"labels": labels, "today": today, "avg": avg})
+
+
+@router.get("/rank")
+async def rank():
+    """拥堵排行：所有路段按当前平均速度排序"""
+    import numpy as np, os
+    p = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "gz_tensor.npy")
+    t = np.load(os.path.normpath(p))
+    # 第30天18:00（晚高峰）速度
+    speeds = t[:, 29, 108]  # 18:00 = time_id 108
+    ranks = []
+    for i in range(214):
+        s = float(speeds[i]) if not np.isnan(speeds[i]) else 30
+        ranks.append({"road_id": f"GZ{i+1:03d}", "speed": round(s,1), "index": round(40.0/s,2) if s>5 else 2.5})
+    ranks.sort(key=lambda x: -x["index"])
+    return ok(ranks[:10])
+
+
 @router.get("/flows")
 def flows(road_id: str = Query("R001", description="路段ID"), db: Session = Depends(get_db)):
     """某路段最近 24h 流量"""
