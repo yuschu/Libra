@@ -58,7 +58,7 @@
     
     /* Right Panel - Heatmap & Controls */
     .side-panel { width: 380px; height: calc(100vh - 60px); background: rgba(15, 20, 35, 0.95); border-left: 1px solid rgba(255,255,255,0.05); display: block; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; min-height: 0; }
-    .panel-section { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .panel-section { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .panel-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
     
     /* Timeline */
@@ -214,13 +214,13 @@
         <!-- 24小时拥堵指数 -->
         <section class="panel-section">
           <h3>📈 当日24小时拥堵指数</h3>
-          <div id="chart24h" style="width:100%;height:180px;"></div>
+          <div id="chart24h" style="width:100%;height:140px;"></div>
         </section>
 
         <!-- 近7天柱状图 -->
         <section class="panel-section">
           <h3>📊 近7天拥堵指数</h3>
-          <div id="chart7d" style="width:100%;height:180px;"></div>
+          <div id="chart7d" style="width:100%;height:140px;"></div>
         </section>
 
         <!-- 重点区域排行 -->
