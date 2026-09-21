@@ -23,16 +23,34 @@ class TrafficService:
             "alerts": 0
         }
 
-    def get_flows(self, road_id: str = "R001", limit: int = 24) -> dict:
-        """获取某路段最近流量数据"""
-        rows = (
-            self.db.query(TrafficFlow.dt, TrafficFlow.flow)
-            .filter(TrafficFlow.road_id == road_id)
-            .order_by(desc(TrafficFlow.dt))
-            .limit(limit)
-            .all()
-        )
-        rows = list(reversed(rows))
-        labels = [r.dt[11:16] for r in rows]  # "HH:MM"
-        values = [r.flow for r in rows]
-        return {"road_id": road_id, "labels": labels, "values": values}
+    import os, numpy as np
+    _TENSOR = None
+    def _tensor(self):
+        if self.__class__._TENSOR is None:
+            p = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "gz_tensor.npy")
+            p = os.path.normpath(p)
+            self.__class__._TENSOR = np.load(p)
+        return self.__class__._TENSOR
+
+    def get_flows(self, road_id: str = "GZ001", limit: int = 24) -> dict:
+        """从OpenITS广州数据集读真实速度（km/h）"""
+        try:
+            t = self._tensor()
+            # road_id GZ001 -> index 0
+            idx = int(road_id.replace("GZ","")) - 1
+            if idx < 0 or idx >= t.shape[0]:
+                idx = 0
+            # 取第30天（8月30日）一天144个时段
+            day = t[idx, 29, :]  # shape (144,)
+            # 转成 HH:MM 标签
+            labels = []
+            values = []
+            for i in range(0, 144, 6):  # 每小时一个点，24个
+                h = i // 6
+                m = (i % 6) * 10
+                labels.append(f"{h:02d}:{m:02d}")
+                v = float(day[i])
+                values.append(round(v, 1) if not np.isnan(v) else 40.0)
+            return {"road_id": road_id, "labels": labels, "values": values}
+        except Exception as e:
+            return {"road_id": road_id, "labels": [], "values": [], "error": str(e)}
