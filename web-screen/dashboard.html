@@ -899,94 +899,32 @@
     }
     // 加载路段线数据并在2D地图上绘制（根据拥堵等级着色）
     function loadRoadSegments() {
-      if (!window._map2d) return;
-      
-      // 获取当前时间帧的路段流量数据
+      if (!window._map2d || !roadMeta) return;
       const dt = getCurrentDt();
-      const roadIds = selectedRoadId ? [selectedRoadId] : roadMeta.map(r => r.road_id);
-      
-      // 并行获取所有路段的流量数据
-      Promise.all(roadMeta.map(road => 
-        fetch(\/traffic/flows?road_id=\&dt=\)
-          .then(r => r.json())
-          .then(data => {
-            if (data.code === 0 && data.data.values.length > 0) {
-              const idx = data.data.labels.findIndex(l => l === getCurrentDt().slice(11, 16));
-              if (idx >= 0) {
-                return {
-                  road_id: road.road_id,
-                  flow: data.data.values[idx],
-                  avg_speed: data.data.values[idx] // placeholder, API only returns flow
-                };
-              }
-            }
-            return null;
-          })
-          .catch(() => null)
-      )).then(results => {
-        if (!window._map2d) return;
-        
-        let count = 0;
-        roadMeta.forEach(road => {
-          const cacheKey = \-\;
-          const traffic = trafficCache.get(\-\);
-          
-          // 根据速度判断拥堵等级和颜色
-          let color = '#52c41a'; // 默认畅通
-          if (traffic && traffic.avg_speed != null) {
-            const speed = traffic.avg_speed;
-            if (speed < 20) color = '#f5222d';      // 严重 <20
-            else if (speed < 40) color = '#fa8c16'; // 拥堵 20-40
-            else if (speed < 60) color = '#faad14'; // 缓行 40-60
-            else color = '#52c41a'; // 畅通 >=60
-          } else if (traffic && traffic.flow != null) {
-            // Estimate speed from flow if needed
-            color = getCongestionColor(estimateSpeed(traffic.flow, road.road_id));
-          } else {
-            color = '#52c41a'; // 默认畅通
-          }
-          
-          const pt = [road.center_lon, road.center_lat];
-          
-          // 使用 Polyline 画路段线（假设路段有起止坐标）
-          if (road.bounds_geojson && road.bounds_geojson.coordinates) {
-            const coords = road.bounds_geojson.coordinates;
-            const path = coords.map(([lon, lat]) => [lon, lat]);
-            
-            const polyline = new AMap.Polyline({
-              path: path,
-              strokeColor: color,
-              strokeWeight: 6,
-              strokeOpacity: 0.8,
-              strokeStyle: 'solid',
-              lineJoin: 'round',
-              lineCap: 'round',
-              zIndex: 100
-            });
-            polyline.setMap(window._map2d);
-            routeLineObjects[road.road_id] = polyline;
-            count++;
-          } else {
-            // 降级：用圆点标记路段中心
-            const pt = [road.center_lon, road.center_lat];
-            const marker = new AMap.CircleMarker({
-              center: pt,
-              radius: 8,
-              fillColor: color,
-              fillOpacity: 0.9,
-              strokeColor: '#fff',
-              strokeWeight: 2,
-              zIndex: 110
-            });
-            marker.setMap(window._map2d);
-            routeLineObjects[road.road_id] = marker;
-            count++;
-          }
+      // 清旧光点
+      if (window._roadMarkers) {
+        window._roadMarkers.forEach(m => m.setMap(null));
+      }
+      window._roadMarkers = [];
+      let count = 0;
+      roadMeta.forEach(road => {
+        // 暂时全用畅通色，后面接时间轴动态变
+        const color = '#52c41a';
+        const marker = new AMap.CircleMarker({
+          center: [road.center_lon, road.center_lat],
+          radius: 12,
+          fillColor: color,
+          fillOpacity: 0.9,
+          strokeColor: '#fff',
+          strokeWeight: 2,
+          zIndex: 110
         });
-        
-        showToast('已加载 ' + roadMeta.length + ' 条路段', 'success');
-      })
-      .catch(e => { showToast('路段加载失败: ' + e.message, 'error'); });
+        marker.setMap(window._map2d);
+        window._roadMarkers.push(marker);
+        count++;
+      });
+      if (count > 0) window._map2d.setFitView();
+      showToast('已加载 ' + count + ' 个路段节点', 'success');
     }
     
     // 颜色映射函数（由速度判断拥堵等级）
