@@ -57,7 +57,7 @@
     #globe { transition: opacity 0.5s ease; width: 100%; height: 100%; }
     
     /* Right Panel - Heatmap & Controls */
-    .side-panel { width: 380px; background: rgba(15, 20, 35, 0.95); border-left: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+    .side-panel { width: 380px; height: 100vh; background: rgba(15, 20, 35, 0.95); border-left: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; }
     .panel-section { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .panel-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
     
@@ -186,6 +186,11 @@
       
       <!-- Side Panel -->
       <aside class="side-panel">
+        <!-- 当前位置 -->
+        <section class="panel-section">
+          <h3>📍 当前位置</h3>
+          <div id="currentLocation" style="font-size:12px;color:#aaa;line-height:1.6;">拖动地图查看区域数据</div>
+        </section>
         <!-- Timeline Section -->
         <section class="panel-section">
           <h3>🕐 时间轴动画</h3>
@@ -886,6 +891,28 @@
               mapStyle: 'amap://styles/dark'
             });
             // 缩放到国家级别以下自动切回3D
+            // 地图移动时更新当前位置
+            function updateLocationInfo() {
+              if (!window._map2d) return;
+              const c = window._map2d.getCenter();
+              const z = window._map2d.getZoom();
+              // 找附近5公里的路段
+              let near = 0;
+              if (typeof roadMeta !== 'undefined') {
+                roadMeta.forEach(r => {
+                  const dx = (r.center_lon - c.lng) * 91;  // ~km
+                  const dy = (r.center_lat - c.lat) * 111;
+                  const d = Math.sqrt(dx*dx + dy*dy);
+                  if (d < 5) near++;
+                });
+              }
+              const el = document.getElementById('currentLocation');
+              if (el) el.innerHTML = `经纬度: ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}<br>缩放级别: ${z.toFixed(1)}<br>附近5km路段: <b style="color:#3AA7B2">${near}</b> 条`;
+            }
+            window._map2d.on('moveend', updateLocationInfo);
+            window._map2d.on('zoomend', updateLocationInfo);
+            updateLocationInfo();
+
             window._map2d.on('zoomend', () => {
               const z = window._map2d.getZoom();
               if (z <= 5) {
