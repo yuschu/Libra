@@ -322,7 +322,7 @@
               if (idx === 0) shape.moveTo(lon, lat);
               else shape.lineTo(lon, lat);
             });
-            const activeProvinces = ['北京市','天津市','河北省'];
+            const activeProvinces = ['广东省'];
             const isActive = activeProvinces.includes(name);
             let mesh;
             if (isActive) {
@@ -772,7 +772,7 @@
       if (hitObj === hoveredMesh) return;
       // 恢复旧的
       if (hoveredMesh && hoveredMesh.material) {
-        const wasActive = ['北京市','天津市','河北省'].includes(hoveredMesh.userData.province);
+        const wasActive = ['广东省'].includes(hoveredMesh.userData.province);
         hoveredMesh.material.color.set(wasActive ? 0x3AA7B2 : 0x2a5a8a);
         hoveredMesh.material.opacity = wasActive ? 0.85 : 0.8;
         hoveredMesh.scale.set(1, 1, 1);
