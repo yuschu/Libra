@@ -1,4 +1,6 @@
 """交通流量业务逻辑服务。"""
+import os
+import numpy as np
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from typing import List, Optional
@@ -23,7 +25,6 @@ class TrafficService:
             "alerts": 0
         }
 
-    import os, numpy as np
     _TENSOR = None
     def _tensor(self):
         if self.__class__._TENSOR is None:
