@@ -906,6 +906,7 @@
           if (res.code !== 0 || !res.data) { showToast('路段数据格式错误', 'error'); return; }
           const roads = res.data;
           let count = 0;
+          const allPts = [];
           roads.forEach(road => {
             const coords = road.bounds_geojson?.coordinates;
             if (!coords || coords.length < 2) return;
@@ -919,8 +920,13 @@
               zIndex: 100
             });
             polyline.setMap(window._map2d);
+            allPts.push(...coords);
             count++;
           });
+          // 自动适配所有路段视野
+          if (allPts.length > 0) {
+            window._map2d.setFitView();
+          }
           showToast('已加载 ' + count + ' 条路段', 'success');
         })
         .catch(e => { showToast('路段加载失败: ' + e.message, 'error'); });
