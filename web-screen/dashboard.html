@@ -307,6 +307,12 @@
     // 加载省级 GeoJSON 并画到球面
     async function loadProvinces() {
       try {
+        // 先拉有数据省份
+        try {
+          const ar = await fetch(`${API_BASE}/meta/active-provinces`);
+          const aj = await ar.json();
+          window._activeProvinces = aj.data || ['广东省'];
+        } catch(e) { window._activeProvinces = ['广东省']; }
         const resp = await fetch('data/provinces.json');
         const geo = await resp.json();
         const r = 1.002;
@@ -322,13 +328,7 @@
               if (idx === 0) shape.moveTo(lon, lat);
               else shape.lineTo(lon, lat);
             });
-                        let activeProvinces = [];
-            try {
-              const r = await fetch(`${API_BASE}/meta/active-provinces`);
-              const j = await r.json();
-              activeProvinces = j.data || ['广东省'];
-            } catch(e) { activeProvinces = ['广东省']; }
-            const isActive = activeProvinces.includes(name);
+            const isActive = (window._activeProvinces || ['广东省']).includes(name);
             let mesh;
             if (isActive) {
               // 有数据的省：亮青色填充
