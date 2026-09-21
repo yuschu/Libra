@@ -1656,29 +1656,29 @@
 
     // 右击模块：大屏显示该模块，地图移到右侧面板位置
     let _swapped = null;
-    document.querySelectorAll('.panel-section').forEach(sec => {
-      sec.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        if (_swapped === sec) {
-          // 切回地图
-          swapBack();
-          return;
-        }
-        if (_swapped) swapBack();
-        const globe = document.getElementById('globe');
-        const title = sec.querySelector('h3').textContent;
-        // 把模块内容克隆到大屏
-        const big = document.getElementById('bigStage');
-        big.innerHTML = sec.innerHTML;
-        big.style.display = 'block';
-        globe.style.display = 'none';
-        sec.dataset.placeholder = '🗺️ [点击此处恢复地图]';
-        sec.innerHTML = '<h3>🗺️ [点击此处恢复地图]</h3>';
-        _swapped = sec;
-        sec.onclick = swapBack;
-        showToast('已切换到: ' + title);
-      });
-    });
+    function swapToModule(sec) {
+      if (_swapped) swapBack();
+      const globe = document.getElementById('globe');
+      const map2d = document.getElementById('map2d');
+      const title = sec.querySelector('h3').textContent;
+      // 保存原内容
+      sec._originalHTML = sec.innerHTML;
+      // 克隆到大屏
+      const big = document.getElementById('bigStage');
+      big.innerHTML = sec.innerHTML;
+      big.style.display = 'block';
+      globe.style.display = 'none';
+      map2d.style.display = 'none';
+      // 面板位置放占位
+      sec.innerHTML = '<h3 style="cursor:pointer;color:#3AA7B2;">🗺️ [点击恢复地图]</h3>';
+      sec._restorer = swapBack;
+      sec.onclick = swapBack;
+      _swapped = sec;
+      showToast('已切换: ' + title);
+      // 自适应大屏图表
+      if (window._chart24h) window._chart24h.resize();
+      if (window._chart7d) window._chart7d.resize();
+    }
     function swapBack() {
       if (!_swapped) return;
       const big = document.getElementById('bigStage');
@@ -1686,10 +1686,36 @@
       big.style.display = 'none';
       big.innerHTML = '';
       globe.style.display = 'block';
+      // 还原面板内容
+      _swapped.innerHTML = _swapped._originalHTML;
+      _swapped.onclick = null;
       _swapped = null;
-      // 刷新
-      location.reload();
+      // resize 3D
+      setTimeout(() => {
+        const cv = document.getElementById('globe');
+        threeCamera.aspect = cv.clientWidth / cv.clientHeight;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(cv.clientWidth, cv.clientHeight);
+      }, 100);
     }
+    document.querySelectorAll('.panel-section').forEach(sec => {
+      sec.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (_swapped === sec) { swapBack(); return; }
+        swapToModule(sec);
+      });
+    });
+    // 窗口resize自适应
+    window.addEventListener('resize', () => {
+      if (window._chart24h) window._chart24h.resize();
+      if (window._chart7d) window._chart7d.resize();
+      if (typeof threeRenderer !== 'undefined') {
+        const cv = document.getElementById('globe');
+        threeCamera.aspect = cv.clientWidth / cv.clientHeight;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(cv.clientWidth, cv.clientHeight);
+      }
+    });
   </script>
 </body>
 </html>
