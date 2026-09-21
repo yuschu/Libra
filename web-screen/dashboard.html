@@ -1604,6 +1604,48 @@
       } catch(e) { console.error(e); }
     }
     renderRank();
+
+    // 重点区域
+    async function renderFocus(tab='hub') {
+      try {
+        const r = await fetch(`${API_BASE}/traffic/focus/${tab}`);
+        const j = await r.json();
+        const colors = ['#f5222d','#f5222d','#fa8c16','#fa8c16','#faad14','#faad14'];
+        document.getElementById('focusList').innerHTML = j.data.map((d,i) =>
+          `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #222;">
+             <span><b style="color:${colors[i]||'#52c41a'}">${i+1}</b> ${d.name}</span>
+             <span style="color:${colors[i]||'#52c41a'}">${d.index.toFixed(2)}</span>
+             <span style="color:#888">${d.flow}辆</span>
+           </div>`).join('');
+      } catch(e) { console.error(e); }
+    }
+    renderFocus('hub');
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderFocus(b.dataset.tab);
+      };
+    });
+
+    // 右击面板与地图互换
+    document.querySelectorAll('.panel-section').forEach(sec => {
+      sec.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const globe = document.getElementById('globe');
+        const sidebar = sec.closest('.side-panel');
+        if (sec.dataset.swapped === '1') {
+          // 换回
+          document.body.style.setProperty('--panel-w', '380px');
+          sec.dataset.swapped = '0';
+        } else {
+          // 记下原位置
+          sec.dataset.originalHtml = sec.querySelector('h3').textContent;
+          sec.dataset.swapped = '1';
+          showToast('已替换：' + sec.querySelector('h3').textContent + ' ↔ 地图');
+        }
+      });
+    });
   </script>
 </body>
 </html>
