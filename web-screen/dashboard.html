@@ -222,6 +222,17 @@
           <div id="chart7d" style="width:100%;height:180px;"></div>
         </section>
 
+        <!-- 重点区域排行 -->
+        <section class="panel-section" id="panel-focus">
+          <h3>📍 重点区域拥堵</h3>
+          <div style="margin-bottom:8px;">
+            <button class="btn btn-secondary btn-sm tab-btn active" data-tab="hub">客运枢纽</button>
+            <button class="btn btn-secondary btn-sm tab-btn" data-tab="scenic">旅游景区</button>
+            <button class="btn btn-secondary btn-sm tab-btn" data-tab="mall">购物中心</button>
+          </div>
+          <div id="focusList" style="font-size:12px;color:#ccc;max-height:160px;overflow-y:auto;"></div>
+        </section>
+
         <!-- 拥堵排行 -->
         <section class="panel-section">
           <h3>🏆 实时拥堵排行</h3>
@@ -1124,7 +1135,9 @@
         // Update or create route lines for this frame
         updateRouteLines(dt);
         updateHeatmapForTime(dt);
-        
+        // 联动24h折线、排行
+        if (window._chart24hHighlight) window._chart24hHighlight();
+        if (window._rankByHour) window._rankByHour();
       } catch (e) {
         console.error("Frame update error:", e);
       }

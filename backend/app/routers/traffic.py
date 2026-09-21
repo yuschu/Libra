@@ -69,6 +69,28 @@ async def rank():
     return ok(ranks[:10])
 
 
+@router.get("/focus/{tab}")
+async def focus(tab: str = "hub"):
+    """重点区域排行（模拟：从214路段里挑几个）"""
+    import numpy as np, os, random
+    random.seed(42)
+    p = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "gz_tensor.npy")
+    t = np.load(os.path.normpath(p))
+    names = {
+      "hub": ["广州南站","广州东站","天河客运站","白云机场","海珠客运站","滘口客运站"],
+      "scenic": ["广州塔","白云山","陈家祠","沙面","长隆欢乐世界","越秀公园"],
+      "mall": ["天河城","正佳广场","万菱汇","北京路步行街","上下九","太古汇"]
+    }.get(tab, ["广州塔"]*6)
+    today = t[:, 29, 108]
+    out = []
+    for i, name in enumerate(names):
+        idx = random.randint(0, 213)
+        s = float(today[idx]) if not np.isnan(today[idx]) else 30
+        out.append({"name": name, "index": round(40.0/s,2) if s>5 else 2.5, "flow": round(random.uniform(500,5000),0)})
+    out.sort(key=lambda x: -x["index"])
+    return ok(out)
+
+
 @router.get("/flows")
 def flows(road_id: str = Query("R001", description="路段ID"), db: Session = Depends(get_db)):
     """某路段最近 24h 流量"""
