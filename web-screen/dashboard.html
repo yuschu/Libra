@@ -907,12 +907,14 @@
           const roads = res.data;
           let count = 0;
           const allPts = [];
+          const COLORS = { '畅通':'#52c41a','缓行':'#faad14','拥堵':'#fa8c16','严重':'#f5222d' };
+          // 暂时全用畅通色，后面接时间轴动态变
           roads.forEach(road => {
             const pt = [road.center_lon, road.center_lat];
             const marker = new AMap.CircleMarker({
               center: pt,
               radius: 12,
-              fillColor: '#3AA7B2',
+              fillColor: '#52c41a',
               fillOpacity: 0.9,
               strokeColor: '#fff',
               strokeWeight: 2,
