@@ -881,7 +881,7 @@
                 const c = window._map2d.getCenter();
                 resetToCountry(c.lat, c.lng);
               }
-              if (z <= 8 && window._currentRoadLine) {
+              if (z <= 12 && window._currentRoadLine) {
                 window._currentRoadLine.setMap(null);
                 window._currentRoadLine = null;
                 window._roadMarkers.forEach(m => m.setMap(window._map2d));
