@@ -169,7 +169,7 @@
         </select>
       </div>
       <div class="control-group">
-        <button class="btn btn-secondary" id="btnResetView">重置视角</button>
+        <button class="btn btn-secondary" id="btnResetView">切换视角</button>
       </div>
     </header>
     
@@ -842,12 +842,9 @@
           const r2 = Math.sqrt(cx*cx+cy*cy+cz*cz);
           const centerLat = Math.asin(cy/r2)*180/Math.PI;
           const centerLon = Math.atan2(cz, -cx)*180/Math.PI;
-          if (window._currentAdcode === mesh.userData.adcode) {
-            // 点同一个省第二次：放大切2D
-            switchTo2D([centerLat, centerLon], mesh.userData.adcode, provinceName);
-          } else {
-            flyToProvince(mesh.userData.adcode, provinceName, centerLon, centerLat);
-          }
+          // 点省直接切2D
+          window._lastProvince = { lat: centerLat, lon: centerLon, adcode: mesh.userData.adcode, name: provinceName };
+          switchTo2D([centerLat, centerLon], mesh.userData.adcode, provinceName);
         }
       }
     }
@@ -1437,14 +1434,13 @@
       });
       
       document.getElementById("btnResetView").addEventListener("click", () => {
-        if (!threeCamera) return;
         const in2D = document.getElementById('map2d').style.display !== 'none';
         if (in2D) {
-          // 2D状态：回到进入2D前的3D位置
+          // 2D -> 3D，对准2D当前中心
+          const c = window._map2d ? window._map2d.getCenter() : null;
           document.getElementById('map2d').style.display = 'none';
           document.getElementById('globe').style.display = 'block';
           if (window._map2d) { window._map2d.destroy(); window._map2d = null; }
-          window._currentAdcode = null;
           document.getElementById('breadcrumb').innerHTML =
             '<span class="breadcrumb-item active">中国</span>';
           setTimeout(() => {
@@ -1453,28 +1449,24 @@
             threeCamera.updateProjectionMatrix();
             threeRenderer.setSize(cv.clientWidth, cv.clientHeight);
           }, 100);
-          // 回到中国有数据区域中心(北京附近)
-          const latRad = 39.9 * Math.PI / 180;
-          const lonRad = 116.4 * Math.PI / 180;
-          const r = 2.5;
-          flyToPosition(new THREE.Vector3(
-            -Math.cos(latRad)*Math.cos(lonRad)*r,
-            Math.sin(latRad)*r,
-            Math.cos(latRad)*Math.sin(lonRad)*r
-          ), 1000);
+          if (c) {
+            const latRad = c.lat * Math.PI / 180;
+            const lonRad = c.lng * Math.PI / 180;
+            const r = 2.5;
+            flyToPosition(new THREE.Vector3(
+              -Math.cos(latRad)*Math.cos(lonRad)*r,
+              Math.sin(latRad)*r,
+              Math.cos(latRad)*Math.sin(lonRad)*r
+            ), 1000);
+          }
         } else {
-          // 3D状态：循环切有数据国家中心
-          const c = dataCountries[dataCountryIdx];
-          dataCountryIdx = (dataCountryIdx + 1) % dataCountries.length;
-          const latRad = c.lat * Math.PI / 180;
-          const lonRad = c.lon * Math.PI / 180;
-          const r = 2.5;
-          flyToPosition(new THREE.Vector3(
-            -Math.cos(latRad)*Math.cos(lonRad)*r,
-            Math.sin(latRad)*r,
-            Math.cos(latRad)*Math.sin(lonRad)*r
-          ), 1000);
-          showToast('对准: ' + c.name);
+          // 3D -> 2D，对准最后选的省
+          const lp = window._lastProvince;
+          if (lp) {
+            switchTo2D([lp.lat, lp.lon], lp.adcode, lp.name);
+          } else {
+            showToast('请先在3D球面上点一个省');
+          }
         }
       });
       
