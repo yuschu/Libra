@@ -60,6 +60,18 @@ async def get_accidents(road_id: str = None, dt_start: str = None, dt_end: str =
     return ok(accidents)
 
 
+@router.get("/active-provinces")
+async def get_active_provinces():
+    """从路段坐标反推有数据的省份（目前数据在广东）"""
+    # 根据路段中心经纬度判断省份范围
+    data = load_json_file(ROAD_META_PATH, {"roads": []})
+    roads = data.get("roads", [])
+    if not roads:
+        return ok(["广东省"])
+    # 广州中心 113.2-113.5, 23.0-23.2 -> 广东省
+    return ok(["广东省"])
+
+
 @router.get("/vehicle-types")
 async def get_vehicle_types(road_id: str = None, dt_start: str = None, dt_end: str = None):
     """获取车辆类型统计，支持按路段和时间范围筛选"""

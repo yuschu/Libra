@@ -322,7 +322,12 @@
               if (idx === 0) shape.moveTo(lon, lat);
               else shape.lineTo(lon, lat);
             });
-            const activeProvinces = ['广东省'];
+                        let activeProvinces = [];
+            try {
+              const r = await fetch(`${API_BASE}/meta/active-provinces`);
+              const j = await r.json();
+              activeProvinces = j.data || ['广东省'];
+            } catch(e) { activeProvinces = ['广东省']; }
             const isActive = activeProvinces.includes(name);
             let mesh;
             if (isActive) {
@@ -772,7 +777,7 @@
       if (hitObj === hoveredMesh) return;
       // 恢复旧的
       if (hoveredMesh && hoveredMesh.material) {
-        const wasActive = ['广东省'].includes(hoveredMesh.userData.province);
+        const wasActive = activeProvinces.includes(hoveredMesh.userData.province);
         hoveredMesh.material.color.set(wasActive ? 0x3AA7B2 : 0x2a5a8a);
         hoveredMesh.material.opacity = wasActive ? 0.85 : 0.8;
         hoveredMesh.scale.set(1, 1, 1);
